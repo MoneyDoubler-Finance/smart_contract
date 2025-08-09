@@ -1,0 +1,10 @@
+Updating program ids...
+Found incorrect program id declaration in "/Users/isaac/pumpfun-buyback/onchain/m8s/programs/pump/src/lib.rs"
+Updated to CaCK9zpnvkdwmzbTX45k99kBFAb9zbAm1EU8YoVWTFcB
+
+Found incorrect program id declaration in Anchor.toml for the program `pump`
+Updated to CaCK9zpnvkdwmzbTX45k99kBFAb9zbAm1EU8YoVWTFcB
+
+All program id declarations are synced.
+Using image "backpackapp/build:v0.30.1"
+Run docker image
