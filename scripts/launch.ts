@@ -1,52 +1,46 @@
 import * as anchor from '@coral-xyz/anchor';
+import { Keypair, PublicKey, SYSVAR_RENT_PUBKEY } from '@solana/web3.js';
 import {
-  Keypair, PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY
-} from '@solana/web3.js';
-import {
-  getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID
-} from '@solana/spl-token';
-import { readFileSync } from 'fs';
+  buildAccountsFromIdl,
+  buildPreview,
+  getInstructionIdl,
+  getProgram,
+  globalConfigPda,
+  parseFlags,
+  curveAta,
+  SPL,
+  SYS,
+} from './shared';
 
-// UPDATE if your Program ID changes:
-const PROGRAM_ID = new PublicKey('CaCK9zpnvkdwmzbTX45k99kBFAb9zbAm1EU8YoVWTFcB');
-const ASSOCIATED_TOKEN_PROGRAM_ID = new PublicKey('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL');
-const METADATA_PROGRAM_ID          = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s');
+function help() {
+  console.log('Usage: ts-node --transpile-only scripts/launch.ts [--name NAME --symbol SYM --uri URL] [--send]  (env: ANCHOR_PROVIDER_URL, ANCHOR_WALLET)');
+}
 
 async function main() {
-  const provider = anchor.AnchorProvider.env();
-  anchor.setProvider(provider);
+  const flags = parseFlags(process.argv);
+  if (flags.help) return help();
 
-  const idl = JSON.parse(readFileSync('target/idl/pump.json','utf8'));
-  // In Anchor >=0.30, Program constructor takes (idl, provider) and reads programId from idl.address
-  const program = new anchor.Program(idl as anchor.Idl, provider);
+  const name = (flags.name as string) || 'TestToken';
+  const symbol = (flags.symbol as string) || 'TST';
+  const uri = (flags.uri as string) || 'https://example.com/metadata.json';
 
-  // Change these:
-  const name   = 'TestToken';
-  const symbol = 'TST';
-  const uri    = 'https://example.com/metadata.json';
+  const { program, idl, PROGRAM_ID, provider } = getProgram();
 
-  const [globalConfig] = PublicKey.findProgramAddressSync(
-    [Buffer.from('global-config')],
-    PROGRAM_ID
-  );
+  const ixIdl = getInstructionIdl(idl, ['launch']);
 
   const tokenMint = Keypair.generate();
+  const globalConfig = globalConfigPda(PROGRAM_ID);
 
-  const [bondingCurve] = PublicKey.findProgramAddressSync(
-    [Buffer.from('bonding-curve'), tokenMint.publicKey.toBuffer()],
-    PROGRAM_ID
-  );
+  // compute bonding curve PDA idempotently
+  const [bondingCurvePk] = PublicKey.findProgramAddressSync([
+    Buffer.from('bonding-curve'),
+    tokenMint.publicKey.toBuffer(),
+  ], PROGRAM_ID);
 
-  // ATA(owner = bondingCurve PDA, mint = tokenMint), owner off-curve allowed
-  const curveTokenAccount = getAssociatedTokenAddressSync(
-    tokenMint.publicKey,
-    bondingCurve,
-    true, // owner off-curve
-    TOKEN_PROGRAM_ID,
-    ASSOCIATED_TOKEN_PROGRAM_ID
-  );
+  const curveTokenAccount = curveAta(tokenMint.publicKey, bondingCurvePk);
 
-  // Metaplex metadata PDA
+  // Metaplex metadata PDA uses fixed program id from IDL accounts list when present
+  const METADATA_PROGRAM_ID = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s');
   const [tokenMetadataAccount] = PublicKey.findProgramAddressSync(
     [
       Buffer.from('metadata'),
@@ -56,25 +50,37 @@ async function main() {
     METADATA_PROGRAM_ID
   );
 
-  const tx = await program.methods
-    .launch(name, symbol, uri)
-    .accounts({
-      creator: provider.wallet.publicKey,
-      globalConfig,
-      tokenMint: tokenMint.publicKey,
-      bondingCurve,
-      curveTokenAccount,
-      tokenMetadataAccount,
-      tokenProgram: TOKEN_PROGRAM_ID,
-      associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-      metadataProgram: METADATA_PROGRAM_ID,
-      systemProgram: SystemProgram.programId,
-      rent: SYSVAR_RENT_PUBKEY,
-    })
-    .signers([tokenMint]) // IDL says token_mint is a signer
-    .rpc();
+  const accounts = buildAccountsFromIdl(ixIdl.accounts, {
+    creator: provider.wallet.publicKey,
+    global_config: globalConfig,
+    token_mint: tokenMint.publicKey,
+    bonding_curve: bondingCurvePk,
+    curve_token_account: curveTokenAccount,
+    token_metadata_account: tokenMetadataAccount,
+    token_program: SPL.TOKEN_PROGRAM_ID,
+    associated_token_program: SPL.ASSOCIATED_TOKEN_PROGRAM_ID,
+    metadata_program: METADATA_PROGRAM_ID,
+    system_program: SYS.SystemProgram.programId,
+    rent: SYSVAR_RENT_PUBKEY,
+  } as any);
 
-  console.log('launch tx:', tx);
-  console.log('mint:', tokenMint.publicKey.toBase58());
+  buildPreview('launch', PROGRAM_ID, accounts as any, { name, symbol, uri }, {
+    mint: tokenMint.publicKey.toBase58(),
+  });
+
+  const builder = (program as any).methods.launch(name, symbol, uri).accounts(accounts).signers([tokenMint]);
+  if (!flags.send) {
+    await builder.instruction();
+    console.log('Dry-run. Pass --send to submit.');
+    return;
+  }
+  const sig = await builder.rpc();
+  console.log('Signature:', sig);
+  console.log('Mint:', tokenMint.publicKey.toBase58());
 }
-main().catch(e => { console.error(e); process.exit(1); });
+
+main().catch((e) => {
+  if (process.argv.includes('--help')) return help();
+  console.error(e);
+  process.exit(1);
+});
