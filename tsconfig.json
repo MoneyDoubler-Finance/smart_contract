@@ -5,7 +5,19 @@
     "moduleResolution": "Node",
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "strict": false,
-    "skipLibCheck": true
-  }
+    "strict": true,
+    "skipLibCheck": true,
+    "outDir": "dist"
+  },
+  "include": [
+    "scripts/*.ts"
+  ],
+  "exclude": [
+    "scripts/*_min.ts",
+    "scripts/sweep_and_report.ts",
+    "node_modules",
+    "lib",
+    "cli",
+    "tests"
+  ]
 }
