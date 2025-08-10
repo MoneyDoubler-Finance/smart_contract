@@ -84,6 +84,9 @@ Build the program
 # and it will make a build version
 anchor build
 
+# build with Raydium CPI adapter enabled (does not disable entrypoint)
+anchor build -- --features raydium_cpi
+
 # sync all keys in program
 anchor keys sync
 
@@ -103,7 +106,11 @@ cluster = "Localnet"
 
 Run the tests:
 
+# default
 anchor test --provider.cluster Localnet
+
+# run tests with Raydium CPI adapter feature enabled
+anchor test --provider.cluster Localnet -- --features raydium_cpi
 
 Test program on devnet
 
@@ -184,5 +191,7 @@ Notes:
 Running locally
 	•	Ensure Anchor CLI and a Solana validator are installed
 	•	Build: anchor build
+	•	Build with Raydium CPI feature: anchor build -- --features raydium_cpi
 	•	Tests (TypeScript): anchor test
+	•	Tests with Raydium CPI feature: anchor test -- --features raydium_cpi
 	•	Optional Rust tests: cargo test -p pump

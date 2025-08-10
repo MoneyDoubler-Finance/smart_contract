@@ -1,0 +1,14 @@
+[package]
+name = "raydium_adapter"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "raydium_adapter"
+path = "src/lib.rs"
+
+[features]
+# Stub feature to satisfy dependency linking; real implementation can replace this crate.
+cpi = []
+
+default = []

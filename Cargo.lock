@@ -1506,6 +1506,7 @@ version = "0.1.0"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
+ "raydium_adapter",
 ]
 
 [[package]]
@@ -1622,6 +1623,10 @@ checksum = "6f97cdb2a36ed4183de61b2f824cc45c9f1037f28afe0a322e9fff4c108b5aaa"
 dependencies = [
  "rand_core 0.6.4",
 ]
+
+[[package]]
+name = "raydium_adapter"
+version = "0.1.0"
 
 [[package]]
 name = "rayon"
