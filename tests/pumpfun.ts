@@ -1,6 +1,5 @@
 import * as anchor from "@coral-xyz/anchor";
-import { BN, Program } from "@coral-xyz/anchor";
-import { Pump } from ../target/types/pump.ts;
+import { Pump } from  '../target/types/pump.ts';
 import {
   Keypair,
   LAMPORTS_PER_SOL,
@@ -34,7 +33,7 @@ describe("pumpfun", () => {
   // Configure the client to use the local cluster.
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
-  const program = anchor.workspace.Pump as Program<Pump>;
+  const program = anchor.workspace.Pump as anchor.Program<>;
 
   const adminKp = Keypair.generate();
   const userKp = Keypair.generate();
@@ -93,10 +92,10 @@ describe("pumpfun", () => {
       platformBuyFee: 5.0, // Example fee: 5%
       platformSellFee: 5.0, // Example fee: 5%
 
-      curveLimit: new BN(400_000_000_000), //  Example limit: 400 SOL
+      curveLimit: new anchor.BN(400_000_000_000), //  Example limit: 400 SOL
 
-      lamportAmountConfig: new BN(TEST_VIRTUAL_RESERVES),
-      tokenSupplyConfig: new BN(TEST_TOKEN_SUPPLY),
+      lamportAmountConfig: new anchor.BN(TEST_VIRTUAL_RESERVES),
+      tokenSupplyConfig: new anchor.BN(TEST_TOKEN_SUPPLY),
       tokenDecimalsConfig: TEST_DECIMALS,
     };
 
@@ -231,14 +230,14 @@ describe("pumpfun", () => {
     // Fetch the updated config account to validate the changes.
     const configAccount = await program.account.config.fetch(configPda);
 
-    const amount = new BN(5_000_000);
+    const amount = new anchor.BN(5_000_000);
     const tx = await program.methods
       .simulateSwap(amount, 0)
       .accounts({
         tokenMint: tokenKp.publicKey,
       })
       .view();
-    const actualAmountOut = new BN(tx).toNumber();
+    const actualAmountOut = new anchor.BN(tx).toNumber();
 
     // amount after minus fees
     const adjustedAmount = convertFromFloat(
@@ -272,7 +271,7 @@ describe("pumpfun", () => {
     // case 1: failed because minimum receive is too high because of slippage
     try {
       await program.methods
-        .swap(new BN(5_000_000), 0, new BN(5_000_000_0))
+        .swap(new anchor.BN(5_000_000), 0, new anchor.BN(5_000_000_0))
         .accounts({
           teamWallet: configAccount.teamWallet,
           user: userKp.publicKey,
@@ -289,7 +288,7 @@ describe("pumpfun", () => {
 
     // case 2: happy case. Send the transaction to launch a token
     const tx = await program.methods
-      .swap(new BN(5_000_000), 0, new BN(0))
+      .swap(new anchor.BN(5_000_000), 0, new anchor.BN(0))
       .accounts({
         teamWallet: configAccount.teamWallet,
         user: userKp.publicKey,
@@ -322,7 +321,7 @@ describe("pumpfun", () => {
 
     // Send the transaction to launch a token
     const tx = await program.methods
-      .swap(new BN(22_000_000), 1, new BN(0))
+      .swap(new anchor.BN(22_000_000), 1, new anchor.BN(0))
       .accounts({
         teamWallet: configAccount.teamWallet,
         user: userKp.publicKey,
@@ -355,7 +354,7 @@ describe("pumpfun", () => {
 
     // Send the transaction to launch a token
     const tx = await program.methods
-      .swap(new BN(4_000_000_000), 0, new BN(0))
+      .swap(new anchor.BN(4_000_000_000), 0, new anchor.BN(0))
       .accounts({
         teamWallet: configAccount.teamWallet,
         user: user2Kp.publicKey,
