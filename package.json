@@ -4,7 +4,11 @@
         "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
         "test": "mocha -r ts-node/register tests/**/*.ts",
         "script": "ts-node ./cli/command.ts",
-        "release:run": "ts-node --transpile-only scripts/release_min.ts"
+        "release:run": "ts-node --transpile-only scripts/release_min.ts",
+        "build": "anchor build",
+        "build:raydium": "anchor build -- --features raydium_cpi",
+        "test": "anchor test",
+        "test:raydium": "RAYDIUM_CPI=1 anchor test -- --features raydium_cpi"
     },
     "dependencies": {
         "@coral-xyz/anchor": "^0.30.1",

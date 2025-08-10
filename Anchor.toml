@@ -6,6 +6,7 @@ skip-lint = false
 
 [programs.devnet]
 pump = "CaCK9zpnvkdwmzbTX45k99kBFAb9zbAm1EU8YoVWTFcB"
+raydium_adapter = "2q8EXsQ99V7F3pQq8gGjt6o3vijqjCEYazA2Yh4S4ray" # placeholder id for local adapter
 
 [registry]
 url = "https://api.apr.dev"

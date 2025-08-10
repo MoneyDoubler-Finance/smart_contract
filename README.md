@@ -155,3 +155,23 @@ Migrate token to raydium once the curve is completed:
 yarn script migrate -t <TOKEN_MINT>
 # <TOKEN_MINT>: mint address of the token to be launched on the raydium
 ```
+
+# Pump
+
+This Anchor program implements a bonding curve and migration flow.
+
+## Raydium migration (feature-flag)
+
+- The on-chain `migrate` instruction performs a minimal CPI to a local adapter program that represents Raydium when the Cargo feature `raydium_cpi` is enabled. It then locks LP as designed and marks the curve as migrated.
+- When the feature is disabled, `migrate` is a safe no-op that only logs and does not change state.
+
+### Build and test with the feature enabled
+
+- Build: `anchor build -- --features raydium_cpi`
+- Test: `RAYDIUM_CPI=1 anchor test -- --features raydium_cpi`
+
+### Scripts
+
+- Migrate on devnet: `NONCE=0 MINT=<mint> ts-node scripts/migrate.ts`
+
+The adapter program id for devnet is configured in `Anchor.toml` as `raydium_adapter`. In production you should replace the adapter with the real Raydium CPI and program IDs.

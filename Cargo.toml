@@ -1,6 +1,7 @@
 [workspace]
 members = [
-    "programs/*"
+    "programs/*",
+    "programs/raydium_adapter"
 ]
 resolver = "2"
 
