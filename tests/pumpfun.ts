@@ -21,13 +21,13 @@ import {
   TEST_VIRTUAL_RESERVES,
   TEST_INIT_BONDING_CURVE,
   SEED_GLOBAL,
-} from "./constant";
+} from "./constant.ts";
 import {
   calculateAmountOutBuy,
   convertFromFloat,
   convertToFloat,
   getAssociatedTokenAccount,
-} from "./utils";
+} from "./utils.ts";
 require("dotenv").config();
 
 describe("pumpfun", () => {
