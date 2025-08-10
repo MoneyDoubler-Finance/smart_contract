@@ -278,8 +278,95 @@ describe('devnet smoke: configure → launch → buy until completion → releas
         .rpc();
     } catch (e: any) {
       failed = true;
-      assert.match(String(e.message || e), /Curve is not completed yet|6000/);
+      // expect CurveNotCompleted (code 6000)
+      assert.match(String(e.message || e), /Curve is not completed yet|6000|0x1770/i);
     }
     assert.ok(failed, 'expected CurveNotCompleted');
+  });
+
+  it('release_reserves fails if already migrated', async () => {
+    const tokenMint = Keypair.generate();
+    const globalConfig = globalConfigPda(programId);
+    const bondingCurve = bondingCurvePda(programId, tokenMint.publicKey);
+    const curveTokenAccount = getAssociatedTokenAddressSync(tokenMint.publicKey, bondingCurve, true, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID);
+    const tokenMetadataAccount = metadataPda(tokenMint.publicKey);
+
+    await (program as any).methods
+      .launch('Smoke3', 'SMK3', 'https://example.com/smoke3.json')
+      .accounts({
+        creator: (provider.wallet as any).publicKey,
+        globalConfig,
+        tokenMint: tokenMint.publicKey,
+        bondingCurve,
+        curveTokenAccount,
+        tokenMetadataAccount,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        metadataProgram: METADATA_PROGRAM_ID,
+        systemProgram: SystemProgram.programId,
+        rent: SYSVAR_RENT_PUBKEY,
+      })
+      .signers([tokenMint])
+      .rpc();
+
+    await ensureAirdrop(connection, buyer.publicKey, 2 * LAMPORTS_PER_SOL);
+    await (program as any).methods
+      .swap(new BN(curveLimit.toNumber()), 0, new BN(0))
+      .accounts({
+        user: buyer.publicKey,
+        globalConfig,
+        feeRecipient: (provider.wallet as any).publicKey,
+        bondingCurve,
+        tokenMint: tokenMint.publicKey,
+        curveTokenAccount,
+        userTokenAccount: getAssociatedTokenAddressSync(tokenMint.publicKey, buyer.publicKey, false, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID),
+        tokenProgram: TOKEN_PROGRAM_ID,
+        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([buyer])
+      .rpc();
+
+    // first release OK
+    await (program as any).methods
+      .releaseReserves()
+      .accounts({
+        admin: (provider.wallet as any).publicKey,
+        globalConfig,
+        bondingCurve,
+        recipient: recipient.publicKey,
+        tokenMint: tokenMint.publicKey,
+        curveTokenAccount,
+        recipientTokenAccount: getAssociatedTokenAddressSync(tokenMint.publicKey, recipient.publicKey, false, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID),
+        tokenProgram: TOKEN_PROGRAM_ID,
+        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        systemProgram: SystemProgram.programId,
+      })
+      .rpc();
+
+    // second release should fail with AlreadyMigrated
+    let failed2 = false;
+    try {
+      await (program as any).methods
+        .releaseReserves()
+        .accounts({
+          admin: (provider.wallet as any).publicKey,
+          globalConfig,
+          bondingCurve,
+          recipient: recipient.publicKey,
+          tokenMint: tokenMint.publicKey,
+          curveTokenAccount,
+          recipientTokenAccount: getAssociatedTokenAddressSync(tokenMint.publicKey, recipient.publicKey, false, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID),
+          tokenProgram: TOKEN_PROGRAM_ID,
+          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+        })
+        .rpc();
+    } catch (e: any) {
+      failed2 = true;
+      // expect AlreadyMigrated (code 6001)
+      assert.match(String(e.message || e), /Already migrated|6001|0x1771/i);
+    }
+    assert.ok(failed2, 'expected AlreadyMigrated');
   });
 });

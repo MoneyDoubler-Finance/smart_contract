@@ -3,7 +3,7 @@
 This repo includes end-to-end smoke tests that exercise the full happy path on Solana devnet:
 - configure → launch → buy until curve completion → release_reserves
 - verifies SOL drained to recipient (leaving rent), curve ATA swept/closed if empty
-- error cases: NotAdmin on configure and CurveNotCompleted on release_reserves
+- error cases: NotAdmin on configure; CurveNotCompleted and AlreadyMigrated on release_reserves
 
 ### Prerequisites
 - Node 18+
