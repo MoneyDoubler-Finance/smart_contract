@@ -1,6 +1,8 @@
 import * as anchor from '@coral-xyz/anchor';
 import { PublicKey, SystemProgram } from '@solana/web3.js';
-import { readFileSync } from 'fs';
+import { readFileSync, mkdtempSync, writeFileSync } from 'fs';
+import { tmpdir } from 'os';
+import { join } from 'path';
 import {
   getAssociatedTokenAddressSync,
   getAccount,
@@ -9,9 +11,28 @@ import {
 } from '@solana/spl-token';
 
 async function main() {
-  const MINT = process.env.MINT!;
-  const RECIPIENT = process.env.RECIPIENT!;
-  if (!MINT || !RECIPIENT) throw new Error('Set MINT and RECIPIENT');
+  const MINT = process.env.MINT;
+  const RECIPIENT = process.env.RECIPIENT;
+  const WALLET_JSON = process.env.ANCHOR_WALLET_JSON;
+  const PROVIDER_URL = process.env.ANCHOR_PROVIDER_URL;
+
+  if (!MINT || !RECIPIENT || !WALLET_JSON || !PROVIDER_URL) {
+    const missing = [
+      !MINT ? 'MINT' : null,
+      !RECIPIENT ? 'RECIPIENT' : null,
+      !WALLET_JSON ? 'ANCHOR_WALLET_JSON' : null,
+      !PROVIDER_URL ? 'ANCHOR_PROVIDER_URL' : null,
+    ].filter(Boolean);
+    console.log(`send skipped: missing env -> ${missing.join(', ')}`);
+    return;
+  }
+
+  // Materialize wallet JSON to a temp file for Anchor
+  const tmp = mkdtempSync(join(tmpdir(), 'anchor-wallet-'));
+  const walletPath = join(tmp, 'id.json');
+  writeFileSync(walletPath, WALLET_JSON, { encoding: 'utf8', mode: 0o600 });
+  process.env.ANCHOR_WALLET = walletPath;
+  process.env.ANCHOR_PROVIDER_URL = PROVIDER_URL;
 
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
