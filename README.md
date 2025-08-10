@@ -155,3 +155,49 @@ Migrate token to raydium once the curve is completed:
 yarn script migrate -t <TOKEN_MINT>
 # <TOKEN_MINT>: mint address of the token to be launched on the raydium
 ```
+
+## Devnet deploy workflow
+
+- Ensure you have a wallet with devnet SOL and Anchor installed.
+- To use a wallet secret stored in an environment/CI secret:
+
+```bash
+# If your secret is base64-encoded JSON (recommended)
+mkdir -p ~/.config/solana
+printf "%s" "$DEVNET_WALLET_BASE64" | base64 -d > ~/.config/solana/id.json
+chmod 600 ~/.config/solana/id.json
+
+# Or if your secret is raw JSON content
+mkdir -p ~/.config/solana
+printf "%s" "$DEVNET_WALLET_JSON" > ~/.config/solana/id.json
+chmod 600 ~/.config/solana/id.json
+
+# Point Anchor/Solana to this keypair
+export ANCHOR_WALLET=~/.config/solana/id.json
+solana config set --keypair ~/.config/solana/id.json
+solana config set --url devnet
+```
+
+- Build, deploy to devnet, print Program ID, and refresh the IDL in one command:
+
+```bash
+yarn devnet:deploy
+```
+
+This will:
+- Build the program
+- Sync keys
+- Deploy to devnet
+- Print the Program ID
+- Refresh the IDL and TypeScript types (`target/idl/pump.json`, `target/types`)
+
+You can run these individually as well:
+
+```bash
+yarn program:id
+yarn idl:refresh
+```
+
+Notes:
+- You can override the wallet path with `ANCHOR_WALLET` without editing `Anchor.toml`.
+- You can override the cluster with `ANCHOR_PROVIDER_URL` (e.g., a custom devnet RPC).

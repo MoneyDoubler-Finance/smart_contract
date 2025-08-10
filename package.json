@@ -4,7 +4,10 @@
         "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
         "test": "mocha -r ts-node/register tests/**/*.ts",
         "script": "ts-node ./cli/command.ts",
-        "release:run": "ts-node --transpile-only scripts/release_min.ts"
+        "release:run": "ts-node --transpile-only scripts/release_min.ts",
+        "devnet:deploy": "make devnet",
+        "program:id": "make program-id",
+        "idl:refresh": "make idl"
     },
     "dependencies": {
         "@coral-xyz/anchor": "^0.30.1",
