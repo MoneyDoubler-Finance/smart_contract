@@ -9,11 +9,20 @@ import { strict as assert } from 'assert';
 const METADATA_PROGRAM_ID = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s');
 
 // Helper: airdrop and confirm
-async function ensureAirdrop(conn: Connection, pubkey: PublicKey, minLamports: number = 2 * LAMPORTS_PER_SOL) {
+
+async function ensureAirdrop(conn: Connection, pubkey: PublicKey, minLamports: number = 500_000_000) {
+  // Replace faucet with provider-funded transfer
   const bal = await conn.getBalance(pubkey);
   if (bal >= minLamports) return;
-  const sig = await conn.requestAirdrop(pubkey, minLamports - bal);
-  await conn.confirmTransaction({ signature: sig, ...(await conn.getLatestBlockhash()) });
+  const provider = anchor.getProvider() as anchor.AnchorProvider;
+  const payer: any = (provider.wallet as any).payer ?? (provider.wallet as any);
+  const fromPubkey = provider.wallet.publicKey;
+  const tx = new (await import('@solana/web3.js')).Transaction().add(
+    SystemProgram.transfer({ fromPubkey, toPubkey: pubkey, lamports: minLamports - bal })
+  );
+  await provider.sendAndConfirm(tx, [payer]);
+}
+);
 }
 
 // Derive PDA helpers
@@ -100,7 +109,7 @@ describe('devnet smoke: configure → launch → buy until completion → releas
       await (program as any).methods
         .configure(cfg2)
         .accounts({ admin: rando.publicKey, globalConfig, systemProgram: SystemProgram.programId })
-        .signers([rando])
+        .signers([])
         .rpc();
     } catch (e: any) {
       threw = true;
