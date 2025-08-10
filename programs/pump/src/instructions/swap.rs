@@ -1,5 +1,5 @@
 use crate::{
-    errors::PumpError, states::{BondingCurve, Config}
+    errors::PumpError, states::{BondingCurve, Config}, utils::{ensure_not_completed, ensure_not_paused}
 };
 use anchor_lang::{prelude::*, system_program};
 use anchor_spl::{
@@ -62,6 +62,9 @@ impl<'info> Swap<'info> {
 
         bump_bonding_curve: u8,
     ) -> Result<()> {
+        // global guards
+        ensure_not_paused(&self.global_config.as_ref())?;
+        ensure_not_completed(&self.global_config.as_ref())?;
         let bonding_curve = &mut self.bonding_curve;
 
         //  check curve is not completed

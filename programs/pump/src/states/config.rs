@@ -18,9 +18,13 @@ pub struct Config {
     pub buy_fee_percent: f64,
     pub sell_fee_percent: f64,
     pub migration_fee_percent: f64,
+
+    //  safety rails
+    pub paused: bool,
+    pub is_completed: bool,
 }
 
 impl Config {
     pub const SEED_PREFIX: &'static str = "global-config";
-    pub const LEN: usize = 32 + 32 + 8 + 8 * 4 + 8 * 3;
+    pub const LEN: usize = 32 + 32 + 8 + 8 * 4 + 8 * 3 + 1 + 1;
 }
