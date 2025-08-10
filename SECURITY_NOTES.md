@@ -1,5 +1,7 @@
 # Security Notes
 
+This document inventories on-chain instructions and the guard rails applied. It summarizes admin requirements and whether instructions block when `paused` or `is_completed` on `Config`.
+
 Instruction guard coverage summary:
 
 - **configure**: admin-only (authority must equal `global_config.authority`, except first init when default). Does not use paused/completed flags to allow configuration; behavior unchanged aside from explicit admin check helper.
