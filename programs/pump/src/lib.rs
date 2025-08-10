@@ -60,6 +60,13 @@ pub mod pump {
         ctx.accounts.process(nonce)
     }
 
+    // minimal Raydium migration entrypoint (devnet placeholder)
+    pub fn migrate_to_raydium<'info>(
+        ctx: Context<'_, '_, '_, 'info, MigrateToRaydium<'info>>,
+    ) -> Result<()> {
+        ctx.accounts.process(ctx.bumps.bonding_curve)
+    }
+
     // release reserves from completed curve to recipient
     // global guards: paused and admin enforced
     pub fn release_reserves<'info>(
