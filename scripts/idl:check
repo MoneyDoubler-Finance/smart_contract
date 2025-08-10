@@ -1,0 +1,116 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Deterministic Anchor IDL diff and optional update
+# - Builds IDL using Anchor Docker image with docs stripped
+# - Normalizes JSON deterministically (remove docs/metadata keys, stable key order)
+# - Compares generated vs committed idl/*.json
+# Usage:
+#   bash scripts/idl:check          # fail if drift
+#   bash scripts/idl:check --update # update committed IDL to match generated
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+IDL_DIR="$ROOT_DIR/idl"
+TARGET_IDL_DIR="$ROOT_DIR/target/idl"
+NORMALIZED_DIR="$ROOT_DIR/target/idl_normalized"
+ANCHOR_IMG="${ANCHOR_IMG:-backpackapp/build:v0.30.1}"
+
+UPDATE=0
+if [[ "${1-}" == "--update" ]]; then
+  UPDATE=1
+fi
+
+mkdir -p "$IDL_DIR" "$NORMALIZED_DIR"
+
+# Build IDL using Anchor Docker image
+echo "[idl:check] Building IDLs using $ANCHOR_IMG..."
+docker run --rm \
+  -e ANCHOR_IDL_BUILD_NO_DOCS=TRUE \
+  -v "$ROOT_DIR":/work -w /work \
+  "$ANCHOR_IMG" bash -lc "anchor build | cat"
+
+# Node-based normalizer
+normalize() {
+  local input="$1"; shift
+  local output="$1"; shift
+  node -e '
+const fs = require("fs");
+const input = process.argv[1];
+const output = process.argv[2];
+
+function normalizeValue(value) {
+  if (Array.isArray(value)) {
+    return value.map(normalizeValue);
+  }
+  if (value && typeof value === "object") {
+    const next = {};
+    Object.keys(value).sort().forEach((key) => {
+      if (key === "docs" || key === "metadata" || key === "origin" || key === "path" || key === "_id") {
+        return;
+      }
+      next[key] = normalizeValue(value[key]);
+    });
+    return next;
+  }
+  return value;
+}
+
+const raw = JSON.parse(fs.readFileSync(input, "utf8"));
+const cleaned = normalizeValue(raw);
+fs.writeFileSync(output, JSON.stringify(cleaned, null, 2) + "\n");
+' "$input" "$output"
+}
+
+# Detect programs from generated IDL files
+if [[ ! -d "$TARGET_IDL_DIR" ]]; then
+  echo "[idl:check] No generated IDL directory at $TARGET_IDL_DIR (build likely failed)" >&2
+  exit 2
+fi
+
+shopt -s nullglob
+GEN_IDLS=("$TARGET_IDL_DIR"/*.json)
+shopt -u nullglob
+
+if (( ${#GEN_IDLS[@]} == 0 )); then
+  echo "[idl:check] No generated IDL JSON files found in $TARGET_IDL_DIR" >&2
+  exit 2
+fi
+
+HAS_DIFF=0
+for gen in "${GEN_IDLS[@]}"; do
+  base="$(basename "$gen")"
+  name="${base%.json}"
+  norm_gen="$NORMALIZED_DIR/$base"
+  committed="$IDL_DIR/$base"
+  norm_committed="$NORMALIZED_DIR/${name}.committed.json"
+
+  echo "[idl:check] Normalizing $base..."
+  normalize "$gen" "$norm_gen"
+
+  if [[ -f "$committed" ]]; then
+    normalize "$committed" "$norm_committed"
+    if ! diff -u "$norm_committed" "$norm_gen" >/dev/null; then
+      echo "[idl:check] Drift detected for $base:" >&2
+      diff -u "$norm_committed" "$norm_gen" || true
+      HAS_DIFF=1
+    else
+      echo "[idl:check] OK: $base matches committed"
+    fi
+  else
+    echo "[idl:check] Missing committed IDL: $committed" >&2
+    HAS_DIFF=1
+  fi
+
+  if (( UPDATE == 1 )); then
+    echo "[idl:check] Updating committed IDL: $committed"
+    cp "$norm_gen" "$committed"
+  fi
+
+done
+
+if (( HAS_DIFF == 1 && UPDATE == 0 )); then
+  echo "[idl:check] IDL drift found. Run: bash scripts/idl:check --update" >&2
+  exit 1
+fi
+
+echo "[idl:check] Done."

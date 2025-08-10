@@ -16,6 +16,8 @@ codegen-units = 1
 [workspace.dependencies]
 # Force proc-macro2 to include span location support so anchor-syn can call Span::source_file()
 proc-macro2 = { version = "1.0.95", features = ["span-locations"] }
+anchor-lang = { version = "0.30.1" }
+anchor-spl = { version = "0.30.1" }
 
 [patch.crates-io]
 # Ensure anchor-syn depends on proc-macro2 with span-locations by using a local copy that sets the feature
