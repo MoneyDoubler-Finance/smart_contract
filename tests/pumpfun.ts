@@ -1,6 +1,6 @@
 import * as anchor from "@coral-xyz/anchor";
 import { BN, Program } from "@coral-xyz/anchor";
-import { Pumpfun } from "../target/types/pumpfun";
+import { Pumpfun } from "../target/types/pump";
 import {
   Keypair,
   LAMPORTS_PER_SOL,
@@ -34,7 +34,7 @@ describe("pumpfun", () => {
   // Configure the client to use the local cluster.
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
-  const program = anchor.workspace.Pumpfun as Program<Pumpfun>;
+  const program = anchor.workspace.Pump as Program<Pumpfun>;
 
   const adminKp = Keypair.generate();
   const userKp = Keypair.generate();
