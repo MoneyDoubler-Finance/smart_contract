@@ -1,6 +1,6 @@
 import * as anchor from "@coral-xyz/anchor";
 import { BN, Program } from "@coral-xyz/anchor";
-import { Pump } from "../target/types/pump";
+import { Pump } from ../target/types/pump.ts;
 import {
   Keypair,
   LAMPORTS_PER_SOL,
