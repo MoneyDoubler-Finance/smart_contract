@@ -130,17 +130,29 @@ describe("pumpfun", () => {
 
     const tx = await program.methods
       .launch(
-        //  metadata
         TEST_NAME,
         TEST_SYMBOL,
         TEST_URI
       )
+
       .accounts({
-        creator: userKp.publicKey,
-        token: tokenKp.publicKey,
-        teamWallet: configAccount.teamWallet,
+        creator: provider.wallet.publicKey,
+        globalConfig: PublicKey.findProgramAddressSync([Buffer.from(SEED_CONFIG)], program.programId)[0],
+        tokenMint: tokenKp.publicKey,
+        bondingCurve: PublicKey.findProgramAddressSync([Buffer.from(SEED_BONDING_CURVE), tokenKp.publicKey.toBytes()], program.programId)[0],
+        curveTokenAccount: await (async () => { const { getAssociatedTokenAddressSync } = await import('@solana/spl-token'); return getAssociatedTokenAddressSync(tokenKp.publicKey, PublicKey.findProgramAddressSync([Buffer.from(SEED_BONDING_CURVE), tokenKp.publicKey.toBytes()], program.programId)[0], true); })(),
+        tokenMetadataAccount: PublicKey.findProgramAddressSync([
+          Buffer.from('metadata'),
+          new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s').toBuffer(),
+          tokenKp.publicKey.toBuffer(),
+        ], new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s'))[0],
+        tokenProgram: (await import('@solana/spl-token')).TOKEN_PROGRAM_ID,
+        associatedTokenProgram: (await import('@solana/spl-token')).ASSOCIATED_TOKEN_PROGRAM_ID,
+        metadataProgram: new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s'),
+        systemProgram: SystemProgram.programId,
+        rent: (await import('@solana/web3.js')).SYSVAR_RENT_PUBKEY,
       })
-      .signers([userKp, tokenKp])
+      .signers([tokenKp])
       .rpc();
 
     console.log("tx signature:", tx);
