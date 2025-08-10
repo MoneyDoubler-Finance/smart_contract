@@ -74,18 +74,20 @@ describe('devnet smoke: configure → launch → buy until completion → releas
     // ensure admin funded
     await ensureAirdrop(connection, (provider.wallet as any).publicKey);
 
-    const cfg = {
-      authority: (provider.wallet as any).publicKey,
-      feeRecipient: (provider.wallet as any).publicKey,
-      curveLimit: curveLimit,
-      initialVirtualTokenReserves: new BN(500_000_000_000),
-      initialVirtualSolReserves: new BN(0),
-      initialRealTokenReserves: new BN(0),
-      totalTokenSupply: totalTokenSupply,
-      buyFeePercent: 0,
-      sellFeePercent: 0,
-      migrationFeePercent: 0,
-    };
+    
+const cfg = {
+  authority: (provider.wallet as any).publicKey,
+  feeRecipient: (provider.wallet as any).publicKey,
+  curveLimit: curveLimit,
+  initialVirtualTokenReserves: new BN(500_000_000_000),
+  initialVirtualSolReserves: new BN(0),
+  initialRealTokenReserves: new BN(0),
+  totalTokenSupply: totalTokenSupply,
+  buyFeePercent: 0,
+  sellFeePercent: 0,
+  migrationFeePercent: 0,
+};
+
 
     const globalConfig = globalConfigPda(programId);
 
