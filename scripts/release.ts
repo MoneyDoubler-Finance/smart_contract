@@ -1,4 +1,4 @@
-import { PublicKey } from '@solana/web3.js';
+import { PublicKey } from "@solana/web3.js";
 import {
   buildAccountsFromIdl,
   buildPreview,
@@ -11,10 +11,12 @@ import {
   parseFlags,
   SPL,
   SYS,
-} from './shared';
+} from "./shared";
 
 function help() {
-  console.log('Usage: ts-node --transpile-only scripts/release.ts --mint <MINT> --recipient <RECIPIENT> [--send]');
+  console.log(
+    "Usage: ts-node --transpile-only scripts/release.ts --mint <MINT> --recipient <RECIPIENT> [--send]",
+  );
 }
 
 async function main() {
@@ -27,7 +29,7 @@ async function main() {
 
   const { program, idl, PROGRAM_ID, provider } = getProgram();
 
-  const ixIdl = getInstructionIdl(idl, ['release_reserves', 'releaseReserves']);
+  const ixIdl = getInstructionIdl(idl, ["release_reserves", "releaseReserves"]);
 
   const mint = new PublicKey(mintStr);
   const recipient = new PublicKey(recipientStr);
@@ -49,22 +51,20 @@ async function main() {
     system_program: SYS.SystemProgram.programId,
   } as any);
 
-  buildPreview('release_reserves', PROGRAM_ID, accounts as any, {});
+  buildPreview("release_reserves", PROGRAM_ID, accounts as any, {});
 
   const builder = (program as any).methods[ixIdl.name]().accounts(accounts);
   if (!flags.send) {
     await builder.instruction();
-    console.log('Dry-run. Pass --send to submit.');
+    console.log("Dry-run. Pass --send to submit.");
     return;
   }
   const sig = await builder.rpc();
-  console.log('Signature:', sig);
+  console.log("Signature:", sig);
 }
 
 main().catch((e) => {
-  if (process.argv.includes('--help')) return help();
+  if (process.argv.includes("--help")) return help();
   console.error(e);
   process.exit(1);
 });
-
-

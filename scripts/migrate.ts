@@ -1,14 +1,16 @@
-import * as anchor from '@coral-xyz/anchor';
-import { PublicKey } from '@solana/web3.js';
-import { readFileSync } from 'fs';
+import * as anchor from "@coral-xyz/anchor";
+import { PublicKey } from "@solana/web3.js";
+import { readFileSync } from "fs";
 
-const PROGRAM_ID = new PublicKey('CaCK9zpnvkdwmzbTX45k99kBFAb9zbAm1EU8YoVWTFcB');
+const PROGRAM_ID = new PublicKey(
+  "CaCK9zpnvkdwmzbTX45k99kBFAb9zbAm1EU8YoVWTFcB",
+);
 
 async function main() {
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
 
-  const idl = JSON.parse(readFileSync('target/idl/pump.json','utf8'));
+  const idl = JSON.parse(readFileSync("target/idl/pump.json", "utf8"));
   const program = new anchor.Program(idl as anchor.Idl, provider);
 
   // IDL shows: migrate(nonce: u8) and accounts: { payer: signer }
@@ -26,4 +28,7 @@ async function main() {
   console.log("MIGRATE tx:", tx);
 }
 
-main().catch((e) => { console.error(e); process.exit(1); });
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

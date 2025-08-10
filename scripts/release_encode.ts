@@ -1,16 +1,23 @@
-import * as anchor from '@coral-xyz/anchor';
-import { readFileSync } from 'fs';
-import { PublicKey, Keypair, Connection, SystemProgram, Transaction, TransactionInstruction } from '@solana/web3.js';
+import * as anchor from "@coral-xyz/anchor";
+import { readFileSync } from "fs";
+import {
+  PublicKey,
+  Keypair,
+  Connection,
+  SystemProgram,
+  Transaction,
+  TransactionInstruction,
+} from "@solana/web3.js";
 import {
   getAssociatedTokenAddressSync,
   TOKEN_PROGRAM_ID,
   ASSOCIATED_TOKEN_PROGRAM_ID,
-} from '@solana/spl-token';
+} from "@solana/spl-token";
 
 async function main() {
   const MINT = process.env.MINT;
   if (!MINT) {
-    console.log('release:encode skipped: missing MINT env');
+    console.log("release:encode skipped: missing MINT env");
     return;
   }
 
@@ -23,41 +30,47 @@ async function main() {
     provider = null;
   }
 
-  const rawIdl = JSON.parse(readFileSync('target/idl/pump.json', 'utf8'));
+  const rawIdl = JSON.parse(readFileSync("target/idl/pump.json", "utf8"));
   const PROGRAM_ID = new PublicKey(rawIdl.address);
 
   const mint = new PublicKey(MINT);
 
   const [globalConfig] = PublicKey.findProgramAddressSync(
-    [Buffer.from('global-config')],
-    PROGRAM_ID
+    [Buffer.from("global-config")],
+    PROGRAM_ID,
   );
   const [bondingCurve] = PublicKey.findProgramAddressSync(
-    [Buffer.from('bonding-curve'), mint.toBuffer()],
-    PROGRAM_ID
+    [Buffer.from("bonding-curve"), mint.toBuffer()],
+    PROGRAM_ID,
   );
 
-  const admin = provider ? (provider.wallet as any).publicKey as PublicKey : Keypair.generate().publicKey;
-  const recipient = process.env.RECIPIENT ? new PublicKey(process.env.RECIPIENT) : admin;
+  const admin = provider
+    ? ((provider.wallet as any).publicKey as PublicKey)
+    : Keypair.generate().publicKey;
+  const recipient = process.env.RECIPIENT
+    ? new PublicKey(process.env.RECIPIENT)
+    : admin;
 
   const curveTokenAccount = getAssociatedTokenAddressSync(
     mint,
     bondingCurve,
     true,
     TOKEN_PROGRAM_ID,
-    ASSOCIATED_TOKEN_PROGRAM_ID
+    ASSOCIATED_TOKEN_PROGRAM_ID,
   );
   const recipientTokenAccount = getAssociatedTokenAddressSync(
     mint,
     recipient,
     false,
     TOKEN_PROGRAM_ID,
-    ASSOCIATED_TOKEN_PROGRAM_ID
+    ASSOCIATED_TOKEN_PROGRAM_ID,
   );
 
-  const instr = (rawIdl.instructions as any[]).find((i) => i.name === 'release_reserves');
+  const instr = (rawIdl.instructions as any[]).find(
+    (i) => i.name === "release_reserves",
+  );
   if (!instr || !instr.discriminator) {
-    throw new Error('IDL does not contain release_reserves discriminator');
+    throw new Error("IDL does not contain release_reserves discriminator");
   }
   const data = Buffer.from(instr.discriminator);
 
@@ -84,8 +97,8 @@ async function main() {
       isSigner: k.isSigner,
       isWritable: k.isWritable,
     })),
-    ixBase64: Buffer.from(ix.data).toString('base64'),
-    note: 'Instruction encoded from IDL discriminator; this script does not send a transaction.',
+    ixBase64: Buffer.from(ix.data).toString("base64"),
+    note: "Instruction encoded from IDL discriminator; this script does not send a transaction.",
   };
 
   console.log(JSON.stringify(output, null, 2));

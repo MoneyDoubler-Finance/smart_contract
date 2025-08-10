@@ -1,10 +1,10 @@
-SHELL := /usr/bin/bash
+SHELL := /bin/bash
 
 PROGRAM := pump
 PROGRAM_KEYPAIR := target/deploy/$(PROGRAM)-keypair.json
 IDL_FILE := target/idl/$(PROGRAM).json
 
-.PHONY: build keys deploy program-id idl typegen devnet test lint check check-programs check-web
+.PHONY: build keys deploy program-id idl typegen devnet test lint check check-programs check-web idl-check
 
 build:
 	anchor build
@@ -51,14 +51,14 @@ lint:
 test:
 	anchor test
 
-# Top-level check for CI/local use
-check: check-programs check-web
+# IDL consistency check
+idl-check:
+	node scripts/idl-check.mjs
+
+# Top-level check for CI/local use (programs + web + idl check)
+check: check-programs check-web idl-check
 
 # Preserve existing devnet workflow
 devnet: build keys deploy program-id idl
 	@echo "Program ID: $$(solana address -k $(PROGRAM_KEYPAIR))"
 	@echo "IDL refreshed at $(IDL_FILE)"
-
-.PHONY: check
-check:
-	node scripts/idl-check.mjs

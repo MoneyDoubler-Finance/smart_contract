@@ -8,7 +8,7 @@ pub mod utils;
 
 use crate::instructions::*;
 
-declare_id!("4UhpSyRX2BNMaNFEVq2aLrc8ndQnBxn9uoNSpQb1wVf1");
+declare_id!("CaCK9zpnvkdwmzbTX45k99kBFAb9zbAm1EU8YoVWTFcB");
 
 #[program]
 pub mod pump {
@@ -60,18 +60,26 @@ pub mod pump {
         ctx.accounts.process(nonce)
     }
 
-    // minimal Raydium migration entrypoint (devnet placeholder)
-    pub fn migrate_to_raydium<'info>(
-        ctx: Context<'_, '_, '_, 'info, MigrateToRaydium<'info>>,
-    ) -> Result<()> {
-        ctx.accounts.process(ctx.bumps.bonding_curve)
-    }
-
     // release reserves from completed curve to recipient
     // global guards: paused and admin enforced
     pub fn release_reserves<'info>(
         ctx: Context<'_, '_, '_, 'info, ReleaseReserves<'info>>,
     ) -> Result<()> {
         ctx.accounts.process(ctx.bumps.bonding_curve)
+    }
+}
+
+#[cfg(test)]
+mod compile_variants {
+    #[test]
+    #[cfg(feature = "raydium_cpi")]
+    fn builds_with_raydium_cpi_feature() {
+        assert!(true);
+    }
+
+    #[test]
+    #[cfg(not(feature = "raydium_cpi"))]
+    fn builds_without_raydium_cpi_feature() {
+        assert!(true);
     }
 }

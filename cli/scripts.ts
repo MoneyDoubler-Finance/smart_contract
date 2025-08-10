@@ -40,7 +40,7 @@ let payer: NodeWallet = null;
 export const setClusterConfig = async (
   cluster: web3.Cluster,
   keypair: string,
-  rpc?: string
+  rpc?: string,
 ) => {
   if (!rpc) {
     solConnection = new web3.Connection(web3.clusterApiUrl(cluster));
@@ -50,7 +50,7 @@ export const setClusterConfig = async (
 
   const walletKeypair = Keypair.fromSecretKey(
     Uint8Array.from(JSON.parse(fs.readFileSync(keypair, "utf-8"))),
-    { skipValidation: true }
+    { skipValidation: true },
   );
   payer = new NodeWallet(walletKeypair);
 
@@ -60,7 +60,7 @@ export const setClusterConfig = async (
     new anchor.AnchorProvider(solConnection, payer, {
       skipPreflight: true,
       commitment: "confirmed",
-    })
+    }),
   );
 
   // Generate the program client from IDL.
@@ -93,7 +93,7 @@ export const configProject = async () => {
     payer.publicKey,
     newConfig,
     solConnection,
-    program
+    program,
   );
 
   await execTx(tx, solConnection, payer);
@@ -109,7 +109,7 @@ export const launchToken = async () => {
     payer.publicKey,
 
     solConnection,
-    program
+    program,
   );
 
   await execTx(tx, solConnection, payer);
@@ -119,7 +119,7 @@ export const swap = async (
   token: PublicKey,
 
   amount: number,
-  style: number
+  style: number,
 ) => {
   const tx = await swapTx(
     payer.publicKey,
@@ -127,7 +127,7 @@ export const swap = async (
     amount,
     style,
     solConnection,
-    program
+    program,
   );
 
   await execTx(tx, solConnection, payer);
@@ -142,7 +142,7 @@ export const migrate = async (token: PublicKey) => {
     token,
     market,
     solConnection,
-    program
+    program,
   );
 
   await execTx(tx, solConnection, payer);

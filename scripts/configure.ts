@@ -1,5 +1,5 @@
-import * as anchor from '@coral-xyz/anchor';
-import { PublicKey } from '@solana/web3.js';
+import * as anchor from "@coral-xyz/anchor";
+import { PublicKey } from "@solana/web3.js";
 import {
   buildAccountsFromIdl,
   buildPreview,
@@ -8,10 +8,12 @@ import {
   globalConfigPda,
   parseFlags,
   SYS,
-} from './shared';
+} from "./shared";
 
 function help() {
-  console.log('Usage: ts-node --transpile-only scripts/configure.ts [--fees 0.05] [--send]  (env: ANCHOR_PROVIDER_URL, ANCHOR_WALLET)');
+  console.log(
+    "Usage: ts-node --transpile-only scripts/configure.ts [--fees 0.05] [--send]  (env: ANCHOR_PROVIDER_URL, ANCHOR_WALLET)",
+  );
 }
 
 async function main() {
@@ -20,9 +22,9 @@ async function main() {
 
   const { program, idl, PROGRAM_ID, provider } = getProgram();
 
-  const fees = typeof flags.fees === 'number' ? flags.fees : 0.05;
+  const fees = typeof flags.fees === "number" ? flags.fees : 0.05;
 
-  const ixIdl = getInstructionIdl(idl, ['configure']);
+  const ixIdl = getInstructionIdl(idl, ["configure"]);
 
   const globalConfig = globalConfigPda(PROGRAM_ID);
 
@@ -46,20 +48,22 @@ async function main() {
     system_program: SYS.SystemProgram.programId,
   } as any);
 
-  buildPreview('configure', PROGRAM_ID, accounts as any, { new_config });
+  buildPreview("configure", PROGRAM_ID, accounts as any, { new_config });
 
-  const builder = (program as any).methods.configure(new_config).accounts(accounts);
+  const builder = (program as any).methods
+    .configure(new_config)
+    .accounts(accounts);
   if (!flags.send) {
     await builder.instruction(); // ensure it encodes without sending
-    console.log('Dry-run. Pass --send to submit.');
+    console.log("Dry-run. Pass --send to submit.");
     return;
   }
   const sig = await builder.rpc();
-  console.log('Signature:', sig);
+  console.log("Signature:", sig);
 }
 
 main().catch((e) => {
-  if (process.argv.includes('--help')) return help();
+  if (process.argv.includes("--help")) return help();
   console.error(e);
   process.exit(1);
 });

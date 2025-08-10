@@ -29,11 +29,11 @@ export const createConfigTx = async (
   newConfig: any,
 
   connection: Connection,
-  program: Program<Pumpfun>
+  program: Program<Pumpfun>,
 ) => {
   const [configPda, _] = PublicKey.findProgramAddressSync(
     [Buffer.from(SEED_CONFIG)],
-    program.programId
+    program.programId,
   );
 
   console.log("configPda: ", configPda.toBase58());
@@ -59,7 +59,7 @@ export const launchTokenTx = async (
   user: PublicKey,
 
   connection: Connection,
-  program: Program<Pumpfun>
+  program: Program<Pumpfun>,
 ) => {
   const tokenKp = Keypair.generate();
 
@@ -71,7 +71,7 @@ export const launchTokenTx = async (
       //  metadata
       name,
       symbol,
-      uri
+      uri,
     )
     .accounts({
       creator: user,
@@ -96,11 +96,11 @@ export const swapTx = async (
   style: number,
 
   connection: Connection,
-  program: Program<Pumpfun>
+  program: Program<Pumpfun>,
 ) => {
   const [configPda, _] = PublicKey.findProgramAddressSync(
     [Buffer.from(SEED_CONFIG)],
-    program.programId
+    program.programId,
   );
   const configAccount = await program.account.config.fetch(configPda);
 
@@ -124,11 +124,11 @@ export const withdrawTx = async (
   token: PublicKey,
 
   connection: Connection,
-  program: Program<Pumpfun>
+  program: Program<Pumpfun>,
 ) => {
   const [configPda, _] = PublicKey.findProgramAddressSync(
     [Buffer.from(SEED_CONFIG)],
-    program.programId
+    program.programId,
   );
   const configAccount = await program.account.config.fetch(configPda);
   console.log(token);
@@ -151,30 +151,30 @@ export const migrateTx = async (
   market: PublicKey,
 
   connection: Connection,
-  program: Program<Pumpfun>
+  program: Program<Pumpfun>,
 ) => {
   const configPda = PublicKey.findProgramAddressSync(
     [Buffer.from(SEED_CONFIG)],
-    program.programId
+    program.programId,
   )[0];
   const configAccount = await program.account.config.fetch(configPda);
 
   const nonce = PublicKey.findProgramAddressSync(
     [Buffer.from("amm authority")],
-    ammProgram
+    ammProgram,
   )[1];
 
   console.log("nonce: ", nonce);
 
   const bondingCurve = PublicKey.findProgramAddressSync(
     [Buffer.from(SEED_BONDING_CURVE), token.toBytes()],
-    program.programId
+    program.programId,
   )[0];
   console.log("bondingCurve: ", bondingCurve.toBase58());
 
   const globalVault = PublicKey.findProgramAddressSync(
     [Buffer.from("global")],
-    program.programId
+    program.programId,
   )[0];
   console.log("globalVault: ", globalVault.toBase58());
 
@@ -191,9 +191,9 @@ export const migrateTx = async (
           market,
           marketProgram,
           payer,
-          feeDestination
+          feeDestination,
         })
-        .transaction()
+        .transaction(),
     );
 
   tx.feePayer = payer;

@@ -1,13 +1,20 @@
-import * as anchor from '@coral-xyz/anchor';
-import { PublicKey, SystemProgram } from '@solana/web3.js';
-import { getAccount, TOKEN_PROGRAM_ID } from '@solana/spl-token';
-import { writeFileSync } from 'fs';
-import { program as loadProgram, globalConfigPda, bondingCurvePda, curveAta, recipientAta, ASSOCIATED_TOKEN_PROGRAM_ID } from './utils';
+import * as anchor from "@coral-xyz/anchor";
+import { PublicKey, SystemProgram } from "@solana/web3.js";
+import { getAccount, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { writeFileSync } from "fs";
+import {
+  program as loadProgram,
+  globalConfigPda,
+  bondingCurvePda,
+  curveAta,
+  recipientAta,
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+} from "./utils";
 
 async function main() {
   const MINT = process.env.MINT!;
   const RECIPIENT = process.env.RECIPIENT!;
-  if (!MINT || !RECIPIENT) throw new Error('Set MINT and RECIPIENT');
+  if (!MINT || !RECIPIENT) throw new Error("Set MINT and RECIPIENT");
 
   const prog = loadProgram();
   const pid = prog.programId;
@@ -27,8 +34,12 @@ async function main() {
     conn.getBalance(recipient),
   ]);
 
-  let curveTokenBefore = '0';
-  try { curveTokenBefore = (await getAccount(conn, curveTokenAccount)).amount.toString(); } catch {}
+  let curveTokenBefore = "0";
+  try {
+    curveTokenBefore = (
+      await getAccount(conn, curveTokenAccount)
+    ).amount.toString();
+  } catch {}
 
   const tx = await prog.methods
     .releaseReserves()
@@ -51,8 +62,12 @@ async function main() {
     conn.getBalance(recipient),
   ]);
 
-  let curveTokenAfter = '0';
-  try { curveTokenAfter = (await getAccount(conn, curveTokenAccount)).amount.toString(); } catch {}
+  let curveTokenAfter = "0";
+  try {
+    curveTokenAfter = (
+      await getAccount(conn, curveTokenAccount)
+    ).amount.toString();
+  } catch {}
 
   const report = {
     programId: pid.toBase58(),
@@ -62,12 +77,23 @@ async function main() {
     recipient: recipient.toBase58(),
     recipientTokenAccount: recipientTokenAccount.toBase58(),
     tx,
-    before: { curveLamports: curveSolBefore, recipientLamports: recSolBefore, curveTokenRaw: curveTokenBefore },
-    after: { curveLamports: curveSolAfter, recipientLamports: recSolAfter, curveTokenRaw: curveTokenAfter },
+    before: {
+      curveLamports: curveSolBefore,
+      recipientLamports: recSolBefore,
+      curveTokenRaw: curveTokenBefore,
+    },
+    after: {
+      curveLamports: curveSolAfter,
+      recipientLamports: recSolAfter,
+      curveTokenRaw: curveTokenAfter,
+    },
   };
 
-  writeFileSync('release_report.json', JSON.stringify(report, null, 2));
+  writeFileSync("release_report.json", JSON.stringify(report, null, 2));
   console.log(JSON.stringify(report, null, 2));
 }
 
-main().catch((e) => { console.error(e); process.exit(1); });
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

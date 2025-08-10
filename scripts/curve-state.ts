@@ -1,4 +1,4 @@
-import { PublicKey } from '@solana/web3.js';
+import { PublicKey } from "@solana/web3.js";
 import {
   bondingCurvePda,
   getProgram,
@@ -6,10 +6,12 @@ import {
   parseBondingCurve,
   parseFlags,
   fetchAccountData,
-} from './shared';
+} from "./shared";
 
 function help() {
-  console.log('Usage: ts-node --transpile-only scripts/curve-state.ts --mint <MINT>  (env: ANCHOR_PROVIDER_URL, ANCHOR_WALLET)');
+  console.log(
+    "Usage: ts-node --transpile-only scripts/curve-state.ts --mint <MINT>  (env: ANCHOR_PROVIDER_URL, ANCHOR_WALLET)",
+  );
 }
 
 async function main() {
@@ -29,24 +31,26 @@ async function main() {
   const data = await fetchAccountData(connection, bondingCurve);
   const parsed = parseBondingCurve(data);
 
-  console.log(JSON.stringify({
-    programId: PROGRAM_ID.toBase58(),
-    mint: mint.toBase58(),
-    globalConfig: globalConfig.toBase58(),
-    bondingCurve: bondingCurve.toBase58(),
-    reserves: {
-      virtualToken: parsed.virtualTokenReserves.toString(),
-      virtualSol: parsed.virtualSolReserves.toString(),
-      realToken: parsed.realTokenReserves.toString(),
-      realSol: parsed.realSolReserves.toString(),
-      totalSupply: parsed.tokenTotalSupply.toString(),
-    },
-    isCompleted: parsed.isCompleted,
-  }));
+  console.log(
+    JSON.stringify({
+      programId: PROGRAM_ID.toBase58(),
+      mint: mint.toBase58(),
+      globalConfig: globalConfig.toBase58(),
+      bondingCurve: bondingCurve.toBase58(),
+      reserves: {
+        virtualToken: parsed.virtualTokenReserves.toString(),
+        virtualSol: parsed.virtualSolReserves.toString(),
+        realToken: parsed.realTokenReserves.toString(),
+        realSol: parsed.realSolReserves.toString(),
+        totalSupply: parsed.tokenTotalSupply.toString(),
+      },
+      isCompleted: parsed.isCompleted,
+    }),
+  );
 }
 
 main().catch((e) => {
-  if (process.argv.includes('--help')) return help();
+  if (process.argv.includes("--help")) return help();
   console.error(e);
   process.exit(1);
 });

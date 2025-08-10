@@ -1,5 +1,5 @@
-import * as anchor from '@coral-xyz/anchor';
-import { PublicKey } from '@solana/web3.js';
+import * as anchor from "@coral-xyz/anchor";
+import { PublicKey } from "@solana/web3.js";
 import {
   buildAccountsFromIdl,
   buildPreview,
@@ -15,10 +15,12 @@ import {
   bondingCurvePda,
   fetchAccountData,
   curveAta,
-} from './shared';
+} from "./shared";
 
 function help() {
-  console.log('Usage: ts-node --transpile-only scripts/buy.ts --mint <MINT> --lamports <LAMPORTS> [--send]  (env: ANCHOR_PROVIDER_URL, ANCHOR_WALLET)');
+  console.log(
+    "Usage: ts-node --transpile-only scripts/buy.ts --mint <MINT> --lamports <LAMPORTS> [--send]  (env: ANCHOR_PROVIDER_URL, ANCHOR_WALLET)",
+  );
 }
 
 async function main() {
@@ -33,7 +35,7 @@ async function main() {
   const connection = provider.connection;
 
   const mint = new PublicKey(mintStr);
-  const ixIdl = getInstructionIdl(idl, ['swap']);
+  const ixIdl = getInstructionIdl(idl, ["swap"]);
 
   const globalConfig = globalConfigPda(PROGRAM_ID);
   const cfgData = await fetchAccountData(connection, globalConfig);
@@ -63,24 +65,32 @@ async function main() {
 
   const decimals = await getMintDecimals(connection, mint);
 
-  buildPreview('buy', PROGRAM_ID, accounts as any, { amount: amount.toString(), direction, minOut: minOut.toString() }, {
-    mint: mint.toBase58(),
-    mintDecimals: decimals,
-    lamports,
-  });
+  buildPreview(
+    "buy",
+    PROGRAM_ID,
+    accounts as any,
+    { amount: amount.toString(), direction, minOut: minOut.toString() },
+    {
+      mint: mint.toBase58(),
+      mintDecimals: decimals,
+      lamports,
+    },
+  );
 
-  const builder = (program as any).methods.swap(amount, direction, minOut).accounts(accounts);
+  const builder = (program as any).methods
+    .swap(amount, direction, minOut)
+    .accounts(accounts);
   if (!flags.send) {
     await builder.instruction();
-    console.log('Dry-run. Pass --send to submit.');
+    console.log("Dry-run. Pass --send to submit.");
     return;
   }
   const sig = await builder.rpc();
-  console.log('Signature:', sig);
+  console.log("Signature:", sig);
 }
 
 main().catch((e) => {
-  if (process.argv.includes('--help')) return help();
+  if (process.argv.includes("--help")) return help();
   console.error(e);
   process.exit(1);
 });

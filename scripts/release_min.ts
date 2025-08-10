@@ -1,14 +1,14 @@
-import * as anchor from '@coral-xyz/anchor';
-import { PublicKey, SystemProgram } from '@solana/web3.js';
-import { readFileSync, mkdtempSync, writeFileSync } from 'fs';
-import { tmpdir } from 'os';
-import { join } from 'path';
+import * as anchor from "@coral-xyz/anchor";
+import { PublicKey, SystemProgram } from "@solana/web3.js";
+import { readFileSync, mkdtempSync, writeFileSync } from "fs";
+import { tmpdir } from "os";
+import { join } from "path";
 import {
   getAssociatedTokenAddressSync,
   getAccount,
   TOKEN_PROGRAM_ID,
   ASSOCIATED_TOKEN_PROGRAM_ID,
-} from '@solana/spl-token';
+} from "@solana/spl-token";
 
 async function main() {
   const MINT = process.env.MINT;
@@ -18,26 +18,26 @@ async function main() {
 
   if (!MINT || !RECIPIENT || !WALLET_JSON || !PROVIDER_URL) {
     const missing = [
-      !MINT ? 'MINT' : null,
-      !RECIPIENT ? 'RECIPIENT' : null,
-      !WALLET_JSON ? 'ANCHOR_WALLET_JSON' : null,
-      !PROVIDER_URL ? 'ANCHOR_PROVIDER_URL' : null,
+      !MINT ? "MINT" : null,
+      !RECIPIENT ? "RECIPIENT" : null,
+      !WALLET_JSON ? "ANCHOR_WALLET_JSON" : null,
+      !PROVIDER_URL ? "ANCHOR_PROVIDER_URL" : null,
     ].filter(Boolean);
-    console.log(`send skipped: missing env -> ${missing.join(', ')}`);
+    console.log(`send skipped: missing env -> ${missing.join(", ")}`);
     return;
   }
 
   // Materialize wallet JSON to a temp file for Anchor
-  const tmp = mkdtempSync(join(tmpdir(), 'anchor-wallet-'));
-  const walletPath = join(tmp, 'id.json');
-  writeFileSync(walletPath, WALLET_JSON, { encoding: 'utf8', mode: 0o600 });
+  const tmp = mkdtempSync(join(tmpdir(), "anchor-wallet-"));
+  const walletPath = join(tmp, "id.json");
+  writeFileSync(walletPath, WALLET_JSON, { encoding: "utf8", mode: 0o600 });
   process.env.ANCHOR_WALLET = walletPath;
   process.env.ANCHOR_PROVIDER_URL = PROVIDER_URL;
 
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
 
-  const rawIdl = JSON.parse(readFileSync('target/idl/pump.json', 'utf8'));
+  const rawIdl = JSON.parse(readFileSync("target/idl/pump.json", "utf8"));
   const PROGRAM_ID = new PublicKey(rawIdl.address);
   const idlClean: any = { ...rawIdl };
   delete idlClean.accounts; // avoid Anchor account coder build on funky IDL
@@ -47,19 +47,27 @@ async function main() {
   const recipient = new PublicKey(RECIPIENT);
 
   const [globalConfig] = PublicKey.findProgramAddressSync(
-    [Buffer.from('global-config')],
-    PROGRAM_ID
+    [Buffer.from("global-config")],
+    PROGRAM_ID,
   );
   const [bondingCurve] = PublicKey.findProgramAddressSync(
-    [Buffer.from('bonding-curve'), mint.toBuffer()],
-    PROGRAM_ID
+    [Buffer.from("bonding-curve"), mint.toBuffer()],
+    PROGRAM_ID,
   );
 
   const curveTokenAccount = getAssociatedTokenAddressSync(
-    mint, bondingCurve, true, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID
+    mint,
+    bondingCurve,
+    true,
+    TOKEN_PROGRAM_ID,
+    ASSOCIATED_TOKEN_PROGRAM_ID,
   );
   const recipientTokenAccount = getAssociatedTokenAddressSync(
-    mint, recipient, false, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID
+    mint,
+    recipient,
+    false,
+    TOKEN_PROGRAM_ID,
+    ASSOCIATED_TOKEN_PROGRAM_ID,
   );
 
   const conn = provider.connection;
@@ -68,8 +76,12 @@ async function main() {
     conn.getBalance(recipient),
   ]);
 
-  let curveTokensBefore = '0';
-  try { curveTokensBefore = (await getAccount(conn, curveTokenAccount)).amount.toString(); } catch {}
+  let curveTokensBefore = "0";
+  try {
+    curveTokensBefore = (
+      await getAccount(conn, curveTokenAccount)
+    ).amount.toString();
+  } catch {}
 
   const tx = await (prog as any).methods
     .releaseReserves()
@@ -92,8 +104,12 @@ async function main() {
     conn.getBalance(recipient),
   ]);
 
-  let curveTokensAfter = '0';
-  try { curveTokensAfter = (await getAccount(conn, curveTokenAccount)).amount.toString(); } catch {}
+  let curveTokensAfter = "0";
+  try {
+    curveTokensAfter = (
+      await getAccount(conn, curveTokenAccount)
+    ).amount.toString();
+  } catch {}
 
   const report = {
     tx,
@@ -118,4 +134,7 @@ async function main() {
   console.log(JSON.stringify(report, null, 2));
 }
 
-main().catch((e) => { console.error(e); process.exit(1); });
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

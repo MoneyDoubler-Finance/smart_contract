@@ -1,7 +1,8 @@
-import web3 from '@solana/web3.js';
-const { Keypair, LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transaction } = web3;
+import web3 from "@solana/web3.js";
+const { Keypair, LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transaction } =
+  web3;
 import * as anchor from "@coral-xyz/anchor";
-import type { Pump } from '../target/types/pump';
+import type { Pump } from "../target/types/pump";
 import * as assert from "assert";
 import {
   SEED_CONFIG,
@@ -43,17 +44,16 @@ describe("pumpfun", () => {
 
   async function fund(toPubkey: PublicKey, lamports: number) {
     const tx = new Transaction().add(
-      SystemProgram.transfer({ fromPubkey, toPubkey, lamports })
+      SystemProgram.transfer({ fromPubkey, toPubkey, lamports }),
     );
     // Sign with provider only
     await provider.sendAndConfirm(tx, [payer]);
   }
 
-
   before(async () => {
     // Initial funding (no faucet)
     await fund(adminKp.publicKey, 1 * LAMPORTS_PER_SOL);
-    await fund(userKp.publicKey,  1 * LAMPORTS_PER_SOL);
+    await fund(userKp.publicKey, 1 * LAMPORTS_PER_SOL);
     await fund(user2Kp.publicKey, 1 * LAMPORTS_PER_SOL);
   });
 
@@ -82,7 +82,10 @@ describe("pumpfun", () => {
       .configure(newConfig)
       .accounts({
         admin: provider.wallet.publicKey,
-        globalConfig: PublicKey.findProgramAddressSync([Buffer.from(SEED_CONFIG)], program.programId)[0],
+        globalConfig: PublicKey.findProgramAddressSync(
+          [Buffer.from(SEED_CONFIG)],
+          program.programId,
+        )[0],
         systemProgram: SystemProgram.programId,
       })
       .rpc();
@@ -92,7 +95,7 @@ describe("pumpfun", () => {
     // get PDA for the config account using the seed "config".
     const [configPda, _] = PublicKey.findProgramAddressSync(
       [Buffer.from(SEED_CONFIG)],
-      program.programId
+      program.programId,
     );
 
     // Log PDA details for debugging.
@@ -104,7 +107,7 @@ describe("pumpfun", () => {
     // Assertions to verify configuration
     assert.equal(
       configAccount.authority.toString(),
-      provider.wallet.publicKey.toString()
+      provider.wallet.publicKey.toString(),
     );
     assert.equal(configAccount.platformBuyFee, 5);
     assert.equal(configAccount.platformSellFee, 5);
@@ -122,35 +125,57 @@ describe("pumpfun", () => {
     // get PDA for the config account using the seed "config".
     const [configPda] = PublicKey.findProgramAddressSync(
       [Buffer.from(SEED_CONFIG)],
-      program.programId
+      program.programId,
     );
     const configAccount = await program.account.config.fetch(configPda);
 
     // Send the transaction to launch a token
 
     const tx = await program.methods
-      .launch(
-        TEST_NAME,
-        TEST_SYMBOL,
-        TEST_URI
-      )
+      .launch(TEST_NAME, TEST_SYMBOL, TEST_URI)
 
       .accounts({
         creator: provider.wallet.publicKey,
-        globalConfig: PublicKey.findProgramAddressSync([Buffer.from(SEED_CONFIG)], program.programId)[0],
+        globalConfig: PublicKey.findProgramAddressSync(
+          [Buffer.from(SEED_CONFIG)],
+          program.programId,
+        )[0],
         tokenMint: tokenKp.publicKey,
-        bondingCurve: PublicKey.findProgramAddressSync([Buffer.from(SEED_BONDING_CURVE), tokenKp.publicKey.toBytes()], program.programId)[0],
-        curveTokenAccount: await (async () => { const { getAssociatedTokenAddressSync } = await import('@solana/spl-token'); return getAssociatedTokenAddressSync(tokenKp.publicKey, PublicKey.findProgramAddressSync([Buffer.from(SEED_BONDING_CURVE), tokenKp.publicKey.toBytes()], program.programId)[0], true); })(),
-        tokenMetadataAccount: PublicKey.findProgramAddressSync([
-          Buffer.from('metadata'),
-          new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s').toBuffer(),
-          tokenKp.publicKey.toBuffer(),
-        ], new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s'))[0],
-        tokenProgram: (await import('@solana/spl-token')).TOKEN_PROGRAM_ID,
-        associatedTokenProgram: (await import('@solana/spl-token')).ASSOCIATED_TOKEN_PROGRAM_ID,
-        metadataProgram: new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s'),
+        bondingCurve: PublicKey.findProgramAddressSync(
+          [Buffer.from(SEED_BONDING_CURVE), tokenKp.publicKey.toBytes()],
+          program.programId,
+        )[0],
+        curveTokenAccount: await (async () => {
+          const { getAssociatedTokenAddressSync } = await import(
+            "@solana/spl-token"
+          );
+          return getAssociatedTokenAddressSync(
+            tokenKp.publicKey,
+            PublicKey.findProgramAddressSync(
+              [Buffer.from(SEED_BONDING_CURVE), tokenKp.publicKey.toBytes()],
+              program.programId,
+            )[0],
+            true,
+          );
+        })(),
+        tokenMetadataAccount: PublicKey.findProgramAddressSync(
+          [
+            Buffer.from("metadata"),
+            new PublicKey(
+              "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s",
+            ).toBuffer(),
+            tokenKp.publicKey.toBuffer(),
+          ],
+          new PublicKey("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"),
+        )[0],
+        tokenProgram: (await import("@solana/spl-token")).TOKEN_PROGRAM_ID,
+        associatedTokenProgram: (await import("@solana/spl-token"))
+          .ASSOCIATED_TOKEN_PROGRAM_ID,
+        metadataProgram: new PublicKey(
+          "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s",
+        ),
         systemProgram: SystemProgram.programId,
-        rent: (await import('@solana/web3.js')).SYSVAR_RENT_PUBKEY,
+        rent: (await import("@solana/web3.js")).SYSVAR_RENT_PUBKEY,
       })
       .signers([tokenKp])
       .rpc();
@@ -166,14 +191,13 @@ describe("pumpfun", () => {
     // check launch phase is 'Presale'
     const [bondingCurvePda, _] = PublicKey.findProgramAddressSync(
       [Buffer.from(SEED_BONDING_CURVE), tokenKp.publicKey.toBytes()],
-      program.programId
+      program.programId,
     );
 
     console.log("bonding curve PDA:", bondingCurvePda.toString());
 
-    const curveAccount = await program.account.bondingCurve.fetch(
-      bondingCurvePda
-    );
+    const curveAccount =
+      await program.account.bondingCurve.fetch(bondingCurvePda);
 
     // Assertions to verify configuration
     assert.equal(curveAccount.creator.toBase58(), userKp.publicKey.toBase58());
@@ -181,29 +205,28 @@ describe("pumpfun", () => {
     // assertions balances
     const teamTokenAccount = getAssociatedTokenAccount(
       adminKp.publicKey,
-      tokenKp.publicKey
+      tokenKp.publicKey,
     );
     const [global_vault] = PublicKey.findProgramAddressSync(
       [Buffer.from(SEED_GLOBAL)],
-      program.programId
+      program.programId,
     );
     const globalVaultTokenAccount = getAssociatedTokenAccount(
       global_vault,
-      tokenKp.publicKey
+      tokenKp.publicKey,
     );
-    const teamTokenBalance = await connection.getTokenAccountBalance(
-      teamTokenAccount
-    );
+    const teamTokenBalance =
+      await connection.getTokenAccountBalance(teamTokenAccount);
     const globalVaultBalance = await connection.getTokenAccountBalance(
-      globalVaultTokenAccount
+      globalVaultTokenAccount,
     );
     assert.equal(
       teamTokenBalance.value.amount,
-      (TEST_TOKEN_SUPPLY * (100 - TEST_INIT_BONDING_CURVE)) / 100
+      (TEST_TOKEN_SUPPLY * (100 - TEST_INIT_BONDING_CURVE)) / 100,
     );
     assert.equal(
       globalVaultBalance.value.amount,
-      (TEST_TOKEN_SUPPLY * TEST_INIT_BONDING_CURVE) / 100
+      (TEST_TOKEN_SUPPLY * TEST_INIT_BONDING_CURVE) / 100,
     );
   });
 
@@ -212,7 +235,7 @@ describe("pumpfun", () => {
     // get PDA for the config account using the seed "config".
     const [configPda, _] = PublicKey.findProgramAddressSync(
       [Buffer.from(SEED_CONFIG)],
-      program.programId
+      program.programId,
     );
 
     // Log PDA details for debugging.
@@ -235,7 +258,7 @@ describe("pumpfun", () => {
       (convertToFloat(amount.toNumber(), TEST_DECIMALS) *
         (100 - configAccount.platformBuyFee)) /
         100,
-      TEST_DECIMALS
+      TEST_DECIMALS,
     );
 
     const reserveToken = (TEST_TOKEN_SUPPLY * TEST_INIT_BONDING_CURVE) / 100;
@@ -244,7 +267,7 @@ describe("pumpfun", () => {
       TEST_VIRTUAL_RESERVES,
       adjustedAmount,
       TEST_DECIMALS,
-      reserveToken
+      reserveToken,
     );
 
     console.log("expected amount out: ", amountOut);
@@ -255,7 +278,7 @@ describe("pumpfun", () => {
   it("Is user1's swap SOL for token completed", async () => {
     const [configPda, _] = PublicKey.findProgramAddressSync(
       [Buffer.from(SEED_CONFIG)],
-      program.programId
+      program.programId,
     );
     const configAccount = await program.account.config.fetch(configPda);
 
@@ -268,12 +291,12 @@ describe("pumpfun", () => {
           user: userKp.publicKey,
           tokenMint: tokenKp.publicKey,
         })
-        
+
         .rpc();
     } catch (error) {
       assert.match(
         JSON.stringify(error),
-        /Return amount is too small compared to the minimum received amount./
+        /Return amount is too small compared to the minimum received amount./,
       );
     }
 
@@ -285,7 +308,7 @@ describe("pumpfun", () => {
         user: userKp.publicKey,
         tokenMint: tokenKp.publicKey,
       })
-      
+
       .rpc();
 
     console.log("tx signature:", tx);
@@ -293,7 +316,7 @@ describe("pumpfun", () => {
     //  check user1's balance
     const tokenAccount = getAssociatedTokenAccount(
       userKp.publicKey,
-      tokenKp.publicKey
+      tokenKp.publicKey,
     );
     const balance = await connection.getBalance(userKp.publicKey);
     const tokenBalance = await connection.getTokenAccountBalance(tokenAccount);
@@ -306,7 +329,7 @@ describe("pumpfun", () => {
   it("Is user1's swap Token for SOL completed", async () => {
     const [configPda, _] = PublicKey.findProgramAddressSync(
       [Buffer.from(SEED_CONFIG)],
-      program.programId
+      program.programId,
     );
     const configAccount = await program.account.config.fetch(configPda);
 
@@ -318,7 +341,7 @@ describe("pumpfun", () => {
         user: userKp.publicKey,
         tokenMint: tokenKp.publicKey,
       })
-      
+
       .rpc();
 
     console.log("tx signature:", tx);
@@ -326,7 +349,7 @@ describe("pumpfun", () => {
     //  check user1's balance
     const tokenAccount = getAssociatedTokenAccount(
       userKp.publicKey,
-      tokenKp.publicKey
+      tokenKp.publicKey,
     );
     const balance = await connection.getBalance(userKp.publicKey);
     const tokenBalance = await connection.getTokenAccountBalance(tokenAccount);
@@ -339,7 +362,7 @@ describe("pumpfun", () => {
   it("Is the curve reached the limit", async () => {
     const [configPda, _] = PublicKey.findProgramAddressSync(
       [Buffer.from(SEED_CONFIG)],
-      program.programId
+      program.programId,
     );
     const configAccount = await program.account.config.fetch(configPda);
 
@@ -351,7 +374,7 @@ describe("pumpfun", () => {
         user: user2Kp.publicKey,
         tokenMint: tokenKp.publicKey,
       })
-      
+
       .rpc();
 
     console.log("tx signature:", tx);
@@ -359,7 +382,7 @@ describe("pumpfun", () => {
     //  check user2's balance
     const tokenAccount = getAssociatedTokenAccount(
       user2Kp.publicKey,
-      tokenKp.publicKey
+      tokenKp.publicKey,
     );
     const balance = await connection.getBalance(user2Kp.publicKey);
     const tokenBalance = await connection.getTokenAccountBalance(tokenAccount);
@@ -371,18 +394,17 @@ describe("pumpfun", () => {
     // check launch phase is 'completed'
     const [bondingCurvePda] = PublicKey.findProgramAddressSync(
       [Buffer.from(SEED_BONDING_CURVE), tokenKp.publicKey.toBytes()],
-      program.programId
+      program.programId,
     );
 
-    const curveAccount = await program.account.bondingCurve.fetch(
-      bondingCurvePda
-    );
+    const curveAccount =
+      await program.account.bondingCurve.fetch(bondingCurvePda);
 
     // Assertions to verify configuration
     assert.equal(curveAccount.isCompleted, true);
     assert.equal(
       curveAccount.reserveLamport.toNumber(),
-      configAccount.curveLimit.toNumber()
+      configAccount.curveLimit.toNumber(),
     );
   });
 });
