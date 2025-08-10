@@ -2,7 +2,6 @@ import * as anchor from '@coral-xyz/anchor';
 import { PublicKey } from '@solana/web3.js';
 import { readFileSync } from 'fs';
 
-const PROGRAM_ID = new PublicKey('CaCK9zpnvkdwmzbTX45k99kBFAb9zbAm1EU8YoVWTFcB');
 const MINT_STR = process.env.MINT!;
 
 async function main() {
@@ -12,6 +11,7 @@ async function main() {
 
   const idl = JSON.parse(readFileSync('target/idl/pump.json','utf8'));
   const program = new anchor.Program(idl as anchor.Idl, provider);
+  const PROGRAM_ID = program.programId as PublicKey;
 
   const mint = new PublicKey(MINT_STR);
   const [bondingCurve] = PublicKey.findProgramAddressSync(

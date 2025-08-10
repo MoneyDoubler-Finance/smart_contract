@@ -4,7 +4,6 @@ import { getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID } from '@solana/spl-tok
 import { readFileSync } from 'fs';
 
 // Program IDs
-const PROGRAM_ID = new PublicKey('CaCK9zpnvkdwmzbTX45k99kBFAb9zbAm1EU8YoVWTFcB');
 const ASSOCIATED_TOKEN_PROGRAM_ID = new PublicKey('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL');
 
 // ---- EDIT THESE BEFORE RUNNING ----
@@ -20,6 +19,7 @@ async function main() {
 
   const idl = JSON.parse(readFileSync('target/idl/pump.json', 'utf8'));
   const program = new anchor.Program(idl as anchor.Idl, provider);
+  const PROGRAM_ID = program.programId as PublicKey;
 
   const mint = new PublicKey(MINT_STR);
 

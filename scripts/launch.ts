@@ -7,8 +7,6 @@ import {
 } from '@solana/spl-token';
 import { readFileSync } from 'fs';
 
-// UPDATE if your Program ID changes:
-const PROGRAM_ID = new PublicKey('CaCK9zpnvkdwmzbTX45k99kBFAb9zbAm1EU8YoVWTFcB');
 const ASSOCIATED_TOKEN_PROGRAM_ID = new PublicKey('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL');
 const METADATA_PROGRAM_ID          = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s');
 
@@ -19,6 +17,7 @@ async function main() {
   const idl = JSON.parse(readFileSync('target/idl/pump.json','utf8'));
   // In Anchor >=0.30, Program constructor takes (idl, provider) and reads programId from idl.address
   const program = new anchor.Program(idl as anchor.Idl, provider);
+  const PROGRAM_ID = program.programId as PublicKey;
 
   // Change these:
   const name   = 'TestToken';
