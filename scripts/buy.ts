@@ -14,6 +14,7 @@ import {
   SYS,
   bondingCurvePda,
   fetchAccountData,
+  maybeSend,
   curveAta,
 } from './shared';
 
@@ -70,13 +71,15 @@ async function main() {
   });
 
   const builder = (program as any).methods.swap(amount, direction, minOut).accounts(accounts);
-  if (!flags.send) {
-    await builder.instruction();
+  const { signature } = await maybeSend(builder, !!flags.send);
+  if (!signature) {
     console.log('Dry-run. Pass --send to submit.');
     return;
   }
-  const sig = await builder.rpc();
-  console.log('Signature:', sig);
+  console.log('Signature:', signature);
+  const tx = await connection.getTransaction(signature, { commitment: 'confirmed', maxSupportedTransactionVersion: 0 });
+  const cu = tx?.meta?.computationalUnitsConsumed;
+  if (cu !== undefined) console.log('Compute units used:', cu);
 }
 
 main().catch((e) => {

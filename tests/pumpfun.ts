@@ -288,7 +288,7 @@ describe("pumpfun", () => {
     }
 
     // case 2: happy case. Send the transaction to launch a token
-    const tx = await program.methods
+    const sig = await program.methods
       .swap(new BN(5_000_000), 0, new BN(0))
       .accounts({
         teamWallet: configAccount.teamWallet,
@@ -298,7 +298,10 @@ describe("pumpfun", () => {
       .signers([userKp])
       .rpc();
 
-    console.log("tx signature:", tx);
+    console.log("tx signature:", sig);
+    const txm = await connection.getTransaction(sig, { commitment: 'confirmed', maxSupportedTransactionVersion: 0 });
+    const cu = txm?.meta?.computationalUnitsConsumed;
+    if (cu !== undefined) console.log('swap buy CU:', cu);
 
     //  check user1's balance
     const tokenAccount = getAssociatedTokenAccount(
@@ -321,7 +324,7 @@ describe("pumpfun", () => {
     const configAccount = await program.account.config.fetch(configPda);
 
     // Send the transaction to launch a token
-    const tx = await program.methods
+    const sig = await program.methods
       .swap(new BN(22_000_000), 1, new BN(0))
       .accounts({
         teamWallet: configAccount.teamWallet,
@@ -331,7 +334,10 @@ describe("pumpfun", () => {
       .signers([userKp])
       .rpc();
 
-    console.log("tx signature:", tx);
+    console.log("tx signature:", sig);
+    const txm = await connection.getTransaction(sig, { commitment: 'confirmed', maxSupportedTransactionVersion: 0 });
+    const cu = txm?.meta?.computationalUnitsConsumed;
+    if (cu !== undefined) console.log('swap sell CU:', cu);
 
     //  check user1's balance
     const tokenAccount = getAssociatedTokenAccount(
@@ -354,7 +360,7 @@ describe("pumpfun", () => {
     const configAccount = await program.account.config.fetch(configPda);
 
     // Send the transaction to launch a token
-    const tx = await program.methods
+    const sig = await program.methods
       .swap(new BN(4_000_000_000), 0, new BN(0))
       .accounts({
         teamWallet: configAccount.teamWallet,
@@ -364,7 +370,10 @@ describe("pumpfun", () => {
       .signers([user2Kp])
       .rpc();
 
-    console.log("tx signature:", tx);
+    console.log("tx signature:", sig);
+    const txm = await connection.getTransaction(sig, { commitment: 'confirmed', maxSupportedTransactionVersion: 0 });
+    const cu = txm?.meta?.computationalUnitsConsumed;
+    if (cu !== undefined) console.log('swap buy (limit) CU:', cu);
 
     //  check user2's balance
     const tokenAccount = getAssociatedTokenAccount(

@@ -16,12 +16,9 @@ pub struct Swap<'info> {
         bump,
     )]
     global_config: Box<Account<'info, Config>>,
-    /// CHECK: should be same with the address in the global_config
-    #[account(
-        mut,
-        constraint = global_config.fee_recipient == fee_recipient.key() @PumpError::IncorrectFeeRecipient
-    )]
-    fee_recipient: AccountInfo<'info>,
+
+    // Move token_mint earlier so PDAs depending on it can be derived up front
+    token_mint: Box<Account<'info, Mint>>,
     #[account(
         mut,
         seeds = [BondingCurve::SEED_PREFIX.as_bytes(), &token_mint.key().to_bytes()],
@@ -29,7 +26,6 @@ pub struct Swap<'info> {
     )]
     bonding_curve: Box<Account<'info, BondingCurve>>,
     
-    token_mint: Box<Account<'info, Mint>>,
     #[account(
         mut,
         associated_token::mint = token_mint,
@@ -43,6 +39,13 @@ pub struct Swap<'info> {
         associated_token::authority = user
     )]
     user_token_account: Box<Account<'info, TokenAccount>>,
+
+    /// CHECK: must equal global_config.fee_recipient
+    #[account(
+        mut,
+        constraint = global_config.fee_recipient == fee_recipient.key() @PumpError::IncorrectFeeRecipient
+    )]
+    fee_recipient: AccountInfo<'info>,
 
     #[account(address = token::ID)]
     token_program: Program<'info, Token>,

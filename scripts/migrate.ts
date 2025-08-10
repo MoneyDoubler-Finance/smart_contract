@@ -1,5 +1,5 @@
 import * as anchor from '@coral-xyz/anchor';
-import { PublicKey } from '@solana/web3.js';
+import { ComputeBudgetProgram, PublicKey } from '@solana/web3.js';
 import { readFileSync } from 'fs';
 
 const PROGRAM_ID = new PublicKey('CaCK9zpnvkdwmzbTX45k99kBFAb9zbAm1EU8YoVWTFcB');
@@ -18,12 +18,20 @@ async function main() {
     throw new Error("Set NONCE to an integer 0..255");
   }
 
-  const tx = await program.methods
+  const builder = (program as any).methods
     .migrate(nonce)
-    .accounts({ payer: provider.wallet.publicKey })
-    .rpc();
+    .accounts({ payer: provider.wallet.publicKey });
 
-  console.log("MIGRATE tx:", tx);
+  const ix = await builder.instruction();
+  const tx = new anchor.web3.Transaction()
+    .add(ComputeBudgetProgram.setComputeUnitLimit({ units: 500_000 }))
+    .add(ix);
+  const sig = await provider.sendAndConfirm(tx);
+
+  console.log("MIGRATE tx:", sig);
+  const txm = await provider.connection.getTransaction(sig, { commitment: 'confirmed', maxSupportedTransactionVersion: 0 });
+  const cu = txm?.meta?.computationalUnitsConsumed;
+  if (cu !== undefined) console.log('Compute units used:', cu);
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });

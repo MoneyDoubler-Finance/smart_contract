@@ -146,7 +146,7 @@ describe('devnet smoke: configure → launch → buy until completion → releas
     await ensureAirdrop(connection, recipient.publicKey, 1 * LAMPORTS_PER_SOL);
 
     // Perform a buy that should push reserves >= curveLimit
-    await (program as any).methods
+    const sig1 = await (program as any).methods
       .swap(new BN(curveLimit.toNumber()), 0, new BN(0))
       .accounts({
         user: buyer.publicKey,
@@ -162,6 +162,9 @@ describe('devnet smoke: configure → launch → buy until completion → releas
       })
       .signers([buyer])
       .rpc();
+    const tx1 = await connection.getTransaction(sig1, { commitment: 'confirmed', maxSupportedTransactionVersion: 0 });
+    const cu1 = tx1?.meta?.computationalUnitsConsumed;
+    if (cu1 !== undefined) console.log('swap buy CU:', cu1);
 
     // Ensure curve is completed
     const curveAcct: any = await (program as any).account.bondingCurve.fetch(bondingCurve);
@@ -242,7 +245,7 @@ describe('devnet smoke: configure → launch → buy until completion → releas
       .rpc();
 
     await ensureAirdrop(connection, buyer.publicKey, 1 * LAMPORTS_PER_SOL);
-    await (program as any).methods
+    const sig2 = await (program as any).methods
       .swap(new BN(curveLimit.toNumber() / 10), 0, new BN(0))
       .accounts({
         user: buyer.publicKey,
@@ -258,6 +261,9 @@ describe('devnet smoke: configure → launch → buy until completion → releas
       })
       .signers([buyer])
       .rpc();
+    const tx2 = await connection.getTransaction(sig2, { commitment: 'confirmed', maxSupportedTransactionVersion: 0 });
+    const cu2 = tx2?.meta?.computationalUnitsConsumed;
+    if (cu2 !== undefined) console.log('swap buy (below limit) CU:', cu2);
 
     let failed = false;
     try {
