@@ -4,7 +4,12 @@
         "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
         "test": "mocha -r ts-node/register tests/**/*.ts",
         "script": "ts-node ./cli/command.ts",
-        "release:run": "ts-node --transpile-only scripts/release_min.ts"
+        "configure:run": "ts-node --transpile-only scripts/configure.ts",
+        "launch:run": "ts-node --transpile-only scripts/launch.ts",
+        "buy:run": "ts-node --transpile-only scripts/buy.ts",
+        "sell:run": "ts-node --transpile-only scripts/sell.ts",
+        "curve-state:run": "ts-node --transpile-only scripts/curve-state.ts",
+        "release:run": "ts-node --transpile-only scripts/release.ts"
     },
     "dependencies": {
         "@coral-xyz/anchor": "^0.30.1",

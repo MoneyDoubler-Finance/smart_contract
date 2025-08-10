@@ -1,46 +1,65 @@
 import * as anchor from '@coral-xyz/anchor';
-import { SystemProgram, PublicKey } from '@solana/web3.js';
-import { readFileSync } from 'fs';
+import { PublicKey } from '@solana/web3.js';
+import {
+  buildAccountsFromIdl,
+  buildPreview,
+  getInstructionIdl,
+  getProgram,
+  globalConfigPda,
+  parseFlags,
+  SYS,
+} from './shared';
 
-// UPDATE if your Program ID changes:
-const PROGRAM_ID = new PublicKey('CaCK9zpnvkdwmzbTX45k99kBFAb9zbAm1EU8YoVWTFcB');
+function help() {
+  console.log('Usage: ts-node --transpile-only scripts/configure.ts [--fees 0.05] [--send]  (env: ANCHOR_PROVIDER_URL, ANCHOR_WALLET)');
+}
 
 async function main() {
-  const provider = anchor.AnchorProvider.env();
-  anchor.setProvider(provider);
+  const flags = parseFlags(process.argv);
+  if (flags.help) return help();
 
-  const idl = JSON.parse(readFileSync('target/idl/pump.json','utf8'));
-  // In Anchor >=0.30, Program constructor takes (idl, provider) and reads programId from idl.address
-  const program = new anchor.Program(idl as anchor.Idl, provider);
+  const { program, idl, PROGRAM_ID, provider } = getProgram();
 
-  const [globalConfig] = PublicKey.findProgramAddressSync(
-    [Buffer.from('global-config')],
-    PROGRAM_ID
-  );
+  const fees = typeof flags.fees === 'number' ? flags.fees : 0.05;
 
-  // Fill with sensible defaults; adjust as needed
+  const ixIdl = getInstructionIdl(idl, ['configure']);
+
+  const globalConfig = globalConfigPda(PROGRAM_ID);
+
+  // Build config struct according to IDL types (uses snake_case field names from IDL)
   const new_config: any = {
     authority: provider.wallet.publicKey,
-    feeRecipient: provider.wallet.publicKey,
-    curveLimit: new anchor.BN(5_000_000_000), // 5 SOL in lamports
-    initialVirtualTokenReserves: new anchor.BN(2_000_000_000),
-    initialVirtualSolReserves: new anchor.BN(1_000_000_000), // 1 SOL in lamports
-    initialRealTokenReserves: new anchor.BN(0),
-    totalTokenSupply: new anchor.BN(1_000_000_000_000),
-    buyFeePercent: 0.02,
-    sellFeePercent: 0.02,
-    migrationFeePercent: 0.05,
+    fee_recipient: provider.wallet.publicKey,
+    curve_limit: new anchor.BN(5_000_000_000),
+    initial_virtual_token_reserves: new anchor.BN(2_000_000_000),
+    initial_virtual_sol_reserves: new anchor.BN(1_000_000_000),
+    initial_real_token_reserves: new anchor.BN(0),
+    total_token_supply: new anchor.BN(1_000_000_000_000),
+    buy_fee_percent: fees,
+    sell_fee_percent: fees,
+    migration_fee_percent: fees,
   };
 
-  const tx = await program.methods
-    .configure(new_config)
-    .accounts({
-      admin: provider.wallet.publicKey,
-      globalConfig,
-      systemProgram: SystemProgram.programId,
-    })
-    .rpc();
+  const accounts = buildAccountsFromIdl(ixIdl.accounts, {
+    admin: provider.wallet.publicKey,
+    global_config: globalConfig,
+    system_program: SYS.SystemProgram.programId,
+  } as any);
 
-  console.log('configure tx:', tx);
+  buildPreview('configure', PROGRAM_ID, accounts as any, { new_config });
+
+  const builder = (program as any).methods.configure(new_config).accounts(accounts);
+  if (!flags.send) {
+    await builder.instruction(); // ensure it encodes without sending
+    console.log('Dry-run. Pass --send to submit.');
+    return;
+  }
+  const sig = await builder.rpc();
+  console.log('Signature:', sig);
 }
-main().catch(e => { console.error(e); process.exit(1); });
+
+main().catch((e) => {
+  if (process.argv.includes('--help')) return help();
+  console.error(e);
+  process.exit(1);
+});
