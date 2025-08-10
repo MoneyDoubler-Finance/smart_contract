@@ -16,11 +16,13 @@ pub mod pump {
 
     //  called by admin to set global config
     //  need to check the signer is authority
+    //  global guards: enforced in each handler as appropriate
     pub fn configure(ctx: Context<Configure>, new_config: states::Config) -> Result<()> {
         ctx.accounts.process(new_config)
     }
 
     //  called by a creator to launch a token on the platform
+    //  global guards: paused/completed enforced
     pub fn launch<'info>(
         ctx: Context<'_, '_, '_, 'info, Launch<'info>>,
 
@@ -34,6 +36,7 @@ pub mod pump {
     }
 
     //  called by a user to swap token/sol
+    //  global guards: paused/completed enforced
     pub fn swap<'info>(
         ctx: Context<'_, '_, '_, 'info, Swap<'info>>,
         amount: u64,
@@ -49,6 +52,7 @@ pub mod pump {
     // discord - https://discord.com/users/1074514238325927956
 
     //  migrate the token to raydium once a curve reaches the limit
+    //  global guards: paused/completed and admin enforced
     pub fn migrate<'info>(
         ctx: Context<'_, '_, '_, 'info, Migrate<'info>>,
         nonce: u8,
@@ -57,6 +61,7 @@ pub mod pump {
     }
 
     // release reserves from completed curve to recipient
+    // global guards: paused and admin enforced
     pub fn release_reserves<'info>(
         ctx: Context<'_, '_, '_, 'info, ReleaseReserves<'info>>,
     ) -> Result<()> {

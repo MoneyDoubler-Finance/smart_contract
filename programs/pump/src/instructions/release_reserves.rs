@@ -1,4 +1,4 @@
-use crate::states::{BondingCurve, Config};
+use crate::{states::{BondingCurve, Config}, utils::{ensure_admin, ensure_not_paused}};
 use anchor_lang::{prelude::*, system_program};
 use anchor_lang::solana_program::sysvar::rent::Rent;
 use anchor_spl::associated_token::{self, AssociatedToken};
@@ -64,6 +64,9 @@ pub enum ReleaseReservesError {
 
 impl<'info> ReleaseReserves<'info> {
     pub fn process(&mut self, bump_bonding_curve: u8) -> Result<()> {
+        // global pause guard and admin check
+        ensure_not_paused(&self.global_config.as_ref())?;
+        ensure_admin(&self.global_config.as_ref(), &self.admin.key())?;
         // ensure curve completed
         require!(self.bonding_curve.is_completed, ReleaseReservesError::CurveNotCompleted);
 

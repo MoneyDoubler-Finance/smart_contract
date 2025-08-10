@@ -1,4 +1,4 @@
-use crate::{errors::PumpError, states::Config};
+use crate::{errors::PumpError, states::Config, utils::{ensure_admin}};
 use anchor_lang::{prelude::*, system_program};
 
 #[derive(Accounts)]
@@ -21,8 +21,10 @@ pub struct Configure<'info> {
 
 impl<'info> Configure<'info> {
     pub fn process(&mut self, new_config: Config) -> Result<()> {
-        require!(self.global_config.authority.eq(&Pubkey::default())
-            || self.global_config.authority.eq(&self.admin.key()), PumpError::NotAuthorized);
+        // Admin-only (allow first-time init when authority is default)
+        if !self.global_config.authority.eq(&Pubkey::default()) {
+            ensure_admin(&self.global_config.as_ref(), &self.admin.key())?;
+        }
 
         self.global_config.set_inner(new_config);
 

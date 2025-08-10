@@ -19,4 +19,10 @@ pub enum PumpError {
 
     #[msg("Curve is already completed")]
     CurveAlreadyCompleted,
+
+    #[msg("Program is paused")]
+    ProgramPaused,
+
+    #[msg("Program is completed")]
+    ProgramCompleted,
 }
