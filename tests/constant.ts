@@ -1,4 +1,4 @@
-export const SEED_CONFIG = "config";
+export const SEED_CONFIG = "global-config";
 export const SEED_BONDING_CURVE = "bonding_curve";
 export const SEED_GLOBAL = "global";
 export const TEST_NAME = "test spl token";
