@@ -1,6 +1,6 @@
 import * as anchor from "@coral-xyz/anchor";
 import { BN, Program } from "@coral-xyz/anchor";
-import { Pumpfun } from "../target/types/pump.ts";
+import { Pump } from ../target/types/pump.ts;
 import {
   Keypair,
   LAMPORTS_PER_SOL,
@@ -21,20 +21,20 @@ import {
   TEST_VIRTUAL_RESERVES,
   TEST_INIT_BONDING_CURVE,
   SEED_GLOBAL,
-} from "./constant";
+} from ./constant.ts;
 import {
   calculateAmountOutBuy,
   convertFromFloat,
   convertToFloat,
   getAssociatedTokenAccount,
-} from "./utils";
+} from ./utils.ts;
 require("dotenv").config();
 
 describe("pumpfun", () => {
   // Configure the client to use the local cluster.
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
-  const program = anchor.workspace.Pump as Program<Pumpfun>;
+  const program = anchor.workspace.Pump as Program<Pump>;
 
   const adminKp = Keypair.generate();
   const userKp = Keypair.generate();
