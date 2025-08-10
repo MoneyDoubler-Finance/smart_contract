@@ -55,4 +55,11 @@ pub mod pump {
     ) -> Result<()> {
         ctx.accounts.process(nonce)
     }
+
+    // release reserves from completed curve to recipient
+    pub fn release_reserves<'info>(
+        ctx: Context<'_, '_, '_, 'info, ReleaseReserves<'info>>,
+    ) -> Result<()> {
+        ctx.accounts.process(ctx.bumps.bonding_curve)
+    }
 }
