@@ -186,3 +186,9 @@ Running locally
 	•	Build: anchor build
 	•	Tests (TypeScript): anchor test
 	•	Optional Rust tests: cargo test -p pump
+
+## Breaking change
+- BondingCurve layout has gained a new `migration_completed: bool` field.
+- New size constant `BONDING_CURVE_LEN` is used for account space: all inits use `space = 8 + BONDING_CURVE_LEN`.
+- Handlers assert existing account size is at least `8 + BONDING_CURVE_LEN` and will fail early if smaller (nice dev signal), which means previously created BondingCurve accounts with the old size are incompatible.
+- Action required: for existing deployments, re-initialize BondingCurve PDAs by relaunching tokens or migrate data to a new PDA with the updated size.

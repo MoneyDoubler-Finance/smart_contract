@@ -193,6 +193,7 @@ export function parseBondingCurve(data: Buffer): {
   realSolReserves: anchor.BN;
   tokenTotalSupply: anchor.BN;
   isCompleted: boolean;
+  migrationCompleted: boolean;
 } {
   let o = 8; // discriminator
   const readU64 = () => {
@@ -211,6 +212,7 @@ export function parseBondingCurve(data: Buffer): {
   const realSolReserves = readU64();
   const tokenTotalSupply = readU64();
   const isCompleted = readBool();
+  const migrationCompleted = readBool();
   return {
     virtualTokenReserves,
     virtualSolReserves,
@@ -218,6 +220,7 @@ export function parseBondingCurve(data: Buffer): {
     realSolReserves,
     tokenTotalSupply,
     isCompleted,
+    migrationCompleted,
   };
 }
 

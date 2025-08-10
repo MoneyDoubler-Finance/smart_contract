@@ -1,5 +1,5 @@
 use crate::{
-    errors::PumpError, states::{BondingCurve, Config}, utils::{ensure_not_completed, ensure_not_paused}
+    errors::PumpError, states::{BondingCurve, Config, BONDING_CURVE_LEN}, utils::{ensure_not_completed, ensure_not_paused}
 };
 use anchor_lang::{prelude::*, system_program};
 use anchor_spl::{
@@ -66,6 +66,10 @@ impl<'info> Swap<'info> {
         ensure_not_paused(&self.global_config.as_ref())?;
         ensure_not_completed(&self.global_config.as_ref())?;
         let bonding_curve = &mut self.bonding_curve;
+
+        // size sanity check for upgraded accounts
+        let expected_space = 8 + BONDING_CURVE_LEN;
+        require!(bonding_curve.to_account_info().data_len() >= expected_space, PumpError::IncorrectValue);
 
         //  check curve is not completed
         require!(

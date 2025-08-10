@@ -4,6 +4,9 @@ use anchor_spl::token::Mint;
 use crate::errors::PumpError;
 use crate::utils::{sol_transfer_from_user, sol_transfer_with_signer, token_transfer_user, token_transfer_with_signer};
 
+// Include all bytes stored in BondingCurve (excluding the 8-byte discriminator)
+pub const BONDING_CURVE_LEN: usize = 8 * 5 + 2; // five u64 + two bools
+
 #[account]
 pub struct BondingCurve {
     //  vitual balances on the curve
@@ -19,11 +22,14 @@ pub struct BondingCurve {
 
     //  true - if the curve reached the limit
     pub is_completed: bool,
+
+    //  true - if the migration has been finalized (Raydium/Meteora, etc.)
+    pub migration_completed: bool,
 }
 
 impl<'info> BondingCurve {
     pub const SEED_PREFIX: &'static str = "bonding-curve";
-    pub const LEN: usize = 8 * 5 + 1;
+    pub const LEN: usize = BONDING_CURVE_LEN;
 
     //  get signer for bonding curve PDA
     pub fn get_signer<'a>(mint: &'a Pubkey, bump: &'a u8) -> [&'a [u8]; 3] {

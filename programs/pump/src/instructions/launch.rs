@@ -1,6 +1,7 @@
 use crate::{
     consts::TOKEN_DECIMAL,
-    states::{BondingCurve, Config},
+    states::{BondingCurve, Config, BONDING_CURVE_LEN},
+    errors::PumpError,
     utils::{ensure_not_completed, ensure_not_paused},
 };
 use anchor_lang::{prelude::*, solana_program::sysvar::SysvarId, system_program};
@@ -35,7 +36,7 @@ pub struct Launch<'info> {
     #[account(
         init,
         payer = creator,
-        space = 8 + BondingCurve::LEN,
+        space = 8 + BONDING_CURVE_LEN,
         seeds = [BondingCurve::SEED_PREFIX.as_bytes(), &token_mint.key().to_bytes()],
         bump
     )]
@@ -81,6 +82,10 @@ impl<'info> Launch<'info> {
         let bonding_curve = &mut self.bonding_curve;
         let global_config = &self.global_config;
 
+        // sanity: if account pre-existed with an older layout, fail with a clear signal
+        let expected_space = 8 + BONDING_CURVE_LEN;
+        require!(bonding_curve.to_account_info().data_len() >= expected_space, PumpError::IncorrectValue);
+
         // init bonding curve pda
         bonding_curve.virtual_token_reserves = global_config.initial_virtual_token_reserves;
         bonding_curve.virtual_sol_reserves = global_config.initial_virtual_sol_reserves;
@@ -88,6 +93,7 @@ impl<'info> Launch<'info> {
         bonding_curve.real_sol_reserves = 0;
         bonding_curve.token_total_supply = global_config.total_token_supply;
         bonding_curve.is_completed = false;
+        bonding_curve.migration_completed = false;
 
         ////////////////////////////////////////////////////////////////////////////////
         //  move the below to swap ix if you want the first buyer to pays the other fee
