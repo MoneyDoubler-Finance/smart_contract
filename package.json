@@ -4,10 +4,12 @@
         "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
         "test": "mocha -r ts-node/register tests/**/*.ts",
         "script": "ts-node ./cli/command.ts",
-        "release:run": "ts-node --transpile-only scripts/release_min.ts"
+        "release:run": "ts-node --transpile-only scripts/release_min.ts",
+        "idl:check": "bash scripts/idl:check",
+        "idl:update": "bash scripts/idl:check --update"
     },
     "dependencies": {
-        "@coral-xyz/anchor": "^0.30.1",
+        "@coral-xyz/anchor": "0.30.1",
         "@metaplex-foundation/mpl-token-metadata": "^3.4.0",
         "@project-serum/serum": "^0.13.65",
         "@raydium-io/raydium-sdk": "^1.3.1-beta.58",
