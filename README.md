@@ -155,3 +155,10 @@ Migrate token to raydium once the curve is completed:
 yarn script migrate -t <TOKEN_MINT>
 # <TOKEN_MINT>: mint address of the token to be launched on the raydium
 ```
+
+## Running locally
+
+- Ensure Anchor CLI and a Solana validator are installed
+- Build: `anchor build`
+- Tests (TypeScript): `anchor test`
+- Optional Rust tests: `cargo test -p pump`
