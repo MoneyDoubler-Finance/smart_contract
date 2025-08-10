@@ -1,13 +1,27 @@
 use anchor_lang::prelude::*;
-use crate::{states::Config, utils::{ensure_admin, ensure_not_completed, ensure_not_paused}};
+use anchor_spl::token::Mint;
+use crate::{
+    states::{Config, BondingCurve},
+    utils::{ensure_admin, ensure_not_completed, ensure_not_paused},
+};
+use crate::instructions::ReleaseReservesError;
 
 #[derive(Accounts)]
 pub struct Migrate<'info> {
-    #[account(mut)]
+    #[account(mut, address = global_config.authority)]
     payer: Signer<'info>,
 
     #[account(seeds = [Config::SEED_PREFIX.as_bytes()], bump)]
     global_config: Account<'info, Config>,
+
+    token_mint: Account<'info, Mint>,
+
+    #[account(
+        mut,
+        seeds = [BondingCurve::SEED_PREFIX.as_bytes(), &token_mint.key().to_bytes()],
+        bump
+    )]
+    bonding_curve: Account<'info, BondingCurve>,
 }
 
 impl<'info> Migrate<'info> {
@@ -16,6 +30,12 @@ impl<'info> Migrate<'info> {
         ensure_not_paused(&self.global_config.as_ref())?;
         ensure_not_completed(&self.global_config.as_ref())?;
         ensure_admin(&self.global_config.as_ref(), &self.payer.key())?;
+
+        // Require curve to be completed
+        require!(self.bonding_curve.is_completed, ReleaseReservesError::CurveNotCompleted);
+
+        // Mark program as completed to prevent re-migration
+        self.global_config.is_completed = true;
 
         ////////////////////    DM if you want full implementation    ////////////////////
         // telegram - https://t.me/microgift88
