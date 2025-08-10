@@ -1,25 +1,52 @@
-import * as anchor from '@coral-xyz/anchor';
 import { PublicKey } from '@solana/web3.js';
-import { readFileSync } from 'fs';
+import {
+  bondingCurvePda,
+  getProgram,
+  globalConfigPda,
+  parseBondingCurve,
+  parseFlags,
+  fetchAccountData,
+} from './shared';
 
-const PROGRAM_ID = new PublicKey('CaCK9zpnvkdwmzbTX45k99kBFAb9zbAm1EU8YoVWTFcB');
-const MINT_STR = process.env.MINT!;
+function help() {
+  console.log('Usage: ts-node --transpile-only scripts/curve-state.ts --mint <MINT>  (env: ANCHOR_PROVIDER_URL, ANCHOR_WALLET)');
+}
 
 async function main() {
-  if (!MINT_STR) throw new Error('Set MINT env var');
-  const provider = anchor.AnchorProvider.env();
-  anchor.setProvider(provider);
+  const flags = parseFlags(process.argv);
+  if (flags.help) return help();
 
-  const idl = JSON.parse(readFileSync('target/idl/pump.json','utf8'));
-  const program = new anchor.Program(idl as anchor.Idl, provider);
+  const mintStr = flags.mint as string;
+  if (!mintStr) return help();
 
-  const mint = new PublicKey(MINT_STR);
-  const [bondingCurve] = PublicKey.findProgramAddressSync(
-    [Buffer.from('bonding-curve'), mint.toBuffer()],
-    PROGRAM_ID
-  );
+  const { PROGRAM_ID, provider } = getProgram();
+  const connection = provider.connection;
 
-  const acct = await (program.account as any).bondingCurve.fetch(bondingCurve);
-  console.log(JSON.stringify({ bondingCurve: bondingCurve.toBase58(), ...acct }, null, 2));
+  const mint = new PublicKey(mintStr);
+  const globalConfig = globalConfigPda(PROGRAM_ID);
+  const bondingCurve = bondingCurvePda(PROGRAM_ID, mint);
+
+  const data = await fetchAccountData(connection, bondingCurve);
+  const parsed = parseBondingCurve(data);
+
+  console.log(JSON.stringify({
+    programId: PROGRAM_ID.toBase58(),
+    mint: mint.toBase58(),
+    globalConfig: globalConfig.toBase58(),
+    bondingCurve: bondingCurve.toBase58(),
+    reserves: {
+      virtualToken: parsed.virtualTokenReserves.toString(),
+      virtualSol: parsed.virtualSolReserves.toString(),
+      realToken: parsed.realTokenReserves.toString(),
+      realSol: parsed.realSolReserves.toString(),
+      totalSupply: parsed.tokenTotalSupply.toString(),
+    },
+    isCompleted: parsed.isCompleted,
+  }));
 }
-main().catch(e => { console.error(e); process.exit(1); });
+
+main().catch((e) => {
+  if (process.argv.includes('--help')) return help();
+  console.error(e);
+  process.exit(1);
+});
