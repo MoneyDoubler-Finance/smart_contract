@@ -18,7 +18,7 @@ import {
 } from './shared';
 
 function help() {
-  console.log('Usage: ts-node --transpile-only scripts/buy.ts --mint <MINT> --lamports <LAMPORTS> [--send]  (env: ANCHOR_PROVIDER_URL, ANCHOR_WALLET)');
+  console.log('Usage: ts-node --transpile-only scripts/buy.ts --mint <MINT> --lamports <LAMPORTS> [--minOut <MIN_RAW>] [--slippageBps <BPS>] [--send]  (env: ANCHOR_PROVIDER_URL, ANCHOR_WALLET)');
 }
 
 async function main() {
@@ -28,6 +28,9 @@ async function main() {
   const mintStr = flags.mint as string;
   const lamports = flags.lamports as number;
   if (!mintStr || lamports === undefined) return help();
+
+  const minOutFlag = flags.minOut !== undefined ? BigInt(flags.minOut) : BigInt(0);
+  const slippageBps = typeof flags.slippageBps === 'number' ? flags.slippageBps : undefined;
 
   const { program, idl, PROGRAM_ID, provider } = getProgram();
   const connection = provider.connection;
@@ -59,17 +62,29 @@ async function main() {
 
   const amount = new anchor.BN(lamports);
   const direction = 0; // 0=buy
-  const minOut = new anchor.BN(0);
+
+  // Users must specify at least one of --minOut or --slippageBps
+  let minOutBn: anchor.BN;
+  if (minOutFlag > 0n) {
+    minOutBn = new anchor.BN(minOutFlag.toString());
+  } else if (slippageBps !== undefined) {
+    // conservative placeholder: require at least (lamports * (10000 - bps))/10000 out in raw units
+    // actual on-chain calc determines amountOut; this simply protects users from 100% loss by default
+    const minOutApprox = BigInt(Math.floor((lamports * (10000 - slippageBps)) / 10000));
+    minOutBn = new anchor.BN(minOutApprox.toString());
+  } else {
+    throw new Error('Provide --minOut or --slippageBps');
+  }
 
   const decimals = await getMintDecimals(connection, mint);
 
-  buildPreview('buy', PROGRAM_ID, accounts as any, { amount: amount.toString(), direction, minOut: minOut.toString() }, {
+  buildPreview('buy', PROGRAM_ID, accounts as any, { amount: amount.toString(), direction, min_out: minOutBn.toString() }, {
     mint: mint.toBase58(),
     mintDecimals: decimals,
     lamports,
   });
 
-  const builder = (program as any).methods.swap(amount, direction, minOut).accounts(accounts);
+  const builder = (program as any).methods.swap(amount, direction, minOutBn).accounts(accounts);
   if (!flags.send) {
     await builder.instruction();
     console.log('Dry-run. Pass --send to submit.');

@@ -11,7 +11,7 @@ import {
 } from './shared';
 
 function help() {
-  console.log('Usage: ts-node --transpile-only scripts/configure.ts [--fees 0.05] [--send]  (env: ANCHOR_PROVIDER_URL, ANCHOR_WALLET)');
+  console.log('Usage: ts-node --transpile-only scripts/configure.ts [--fees 0.05] [--pause true|false] [--pauseLaunch true|false] [--pauseSwap true|false] [--raydium <PK>] [--meteora <PK>] [--send]');
 }
 
 async function main() {
@@ -38,6 +38,12 @@ async function main() {
     buy_fee_percent: fees,
     sell_fee_percent: fees,
     migration_fee_percent: fees,
+    paused: !!flags.pause,
+    is_completed: false,
+    pause_launch: !!flags.pauseLaunch,
+    pause_swap: !!flags.pauseSwap,
+    expected_raydium_program: flags.raydium ? new PublicKey(flags.raydium) : new PublicKey('11111111111111111111111111111111'),
+    expected_meteora_program: flags.meteora ? new PublicKey(flags.meteora) : new PublicKey('11111111111111111111111111111111'),
   };
 
   const accounts = buildAccountsFromIdl(ixIdl.accounts, {

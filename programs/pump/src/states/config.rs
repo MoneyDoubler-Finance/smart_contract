@@ -22,9 +22,17 @@ pub struct Config {
     //  safety rails
     pub paused: bool,
     pub is_completed: bool,
+
+    //  granular kill switches
+    pub pause_launch: bool,
+    pub pause_swap: bool,
+
+    //  expected external CPI program ids (optional: Pubkey::default means disabled)
+    pub expected_raydium_program: Pubkey,
+    pub expected_meteora_program: Pubkey,
 }
 
 impl Config {
     pub const SEED_PREFIX: &'static str = "global-config";
-    pub const LEN: usize = 32 + 32 + 8 + 8 * 4 + 8 * 3 + 1 + 1;
+    pub const LEN: usize = 32 + 32 + 8 + 8 * 4 + 8 * 3 + 1 + 1 + 1 + 1 + 32 + 32;
 }

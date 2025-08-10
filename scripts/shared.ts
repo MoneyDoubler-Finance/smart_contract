@@ -11,8 +11,10 @@ import {
 export const DEFAULT_KEYPAIR =
   process.env.ANCHOR_WALLET || `${process.env.HOME}/.config/solana/id.json`;
 
-export const RAYDIUM_AMM_PROGRAM = new PublicKey('11111111111111111111111111111111'); // <fill if required by IDL>
-export const OPENBOOK_MARKET_PROGRAM = new PublicKey('11111111111111111111111111111111'); // <fill if required by IDL>
+// Optional external program expectations (can be overridden via env)
+export const RAYDIUM_AMM_PROGRAM = new PublicKey(process.env.RAYDIUM_AMM_PROGRAM || '11111111111111111111111111111111');
+export const METEORA_PROGRAM = new PublicKey(process.env.METEORA_PROGRAM || '11111111111111111111111111111111');
+export const OPENBOOK_MARKET_PROGRAM = new PublicKey(process.env.OPENBOOK_MARKET_PROGRAM || '11111111111111111111111111111111');
 
 export function getProvider(): anchor.AnchorProvider {
   const provider = anchor.AnchorProvider.env();
@@ -145,6 +147,12 @@ export function parseConfig(data: Buffer): {
   buyFeePercent: number;
   sellFeePercent: number;
   migrationFeePercent: number;
+  paused: boolean;
+  isCompleted: boolean;
+  pauseLaunch: boolean;
+  pauseSwap: boolean;
+  expectedRaydiumProgram: PublicKey;
+  expectedMeteoraProgram: PublicKey;
 } {
   let o = 8; // discriminator
   const readPub = () => {
@@ -162,6 +170,11 @@ export function parseConfig(data: Buffer): {
     o += 8;
     return v;
   };
+  const readBool = () => {
+    const v = data[o] !== 0;
+    o += 1;
+    return v;
+  };
   const authority = readPub();
   const feeRecipient = readPub();
   const curveLimit = readU64();
@@ -172,6 +185,12 @@ export function parseConfig(data: Buffer): {
   const buyFeePercent = readF64();
   const sellFeePercent = readF64();
   const migrationFeePercent = readF64();
+  const paused = readBool();
+  const isCompleted = readBool();
+  const pauseLaunch = readBool();
+  const pauseSwap = readBool();
+  const expectedRaydiumProgram = readPub();
+  const expectedMeteoraProgram = readPub();
   return {
     authority,
     feeRecipient,
@@ -183,6 +202,12 @@ export function parseConfig(data: Buffer): {
     buyFeePercent,
     sellFeePercent,
     migrationFeePercent,
+    paused,
+    isCompleted,
+    pauseLaunch,
+    pauseSwap,
+    expectedRaydiumProgram,
+    expectedMeteoraProgram,
   };
 }
 
@@ -249,6 +274,8 @@ export function parseFlags(argv: string[]): Record<string, any> {
   if (flags.lamports === undefined && process.env.LAMPORTS) flags.lamports = parseInt(process.env.LAMPORTS, 10);
   if (flags.rawTokens === undefined && process.env.RAW_TOKENS) flags.rawTokens = process.env.RAW_TOKENS;
   if (flags.feeRecipient === undefined && process.env.FEE_RECIPIENT) flags.feeRecipient = process.env.FEE_RECIPIENT;
+  if (flags.minOut === undefined && process.env.MIN_OUT) flags.minOut = process.env.MIN_OUT;
+  if (flags.slippageBps === undefined && process.env.SLIPPAGE_BPS) flags.slippageBps = parseInt(process.env.SLIPPAGE_BPS, 10);
   // dry-run default true unless --send is passed
   flags.send = !!flags.send;
   flags.dryRun = !flags.send;
