@@ -1,6 +1,6 @@
 import * as anchor from "@coral-xyz/anchor";
 import { BN, Program } from "@coral-xyz/anchor";
-import { Pump } from ../target/types/pump.ts;
+import { Pump } from "../target/types/pump";
 import {
   Keypair,
   LAMPORTS_PER_SOL,
@@ -21,13 +21,13 @@ import {
   TEST_VIRTUAL_RESERVES,
   TEST_INIT_BONDING_CURVE,
   SEED_GLOBAL,
-} from ./constant.ts;
+} from "./constant";
 import {
   calculateAmountOutBuy,
   convertFromFloat,
   convertToFloat,
   getAssociatedTokenAccount,
-} from ./utils.ts;
+} from "./utils";
 require("dotenv").config();
 
 describe("pumpfun", () => {
