@@ -1,13 +1,7 @@
+import web3 from '@solana/web3.js';
+const { Keypair, LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transaction } = web3;
 import * as anchor from "@coral-xyz/anchor";
 import type { Pump } from '../target/types/pump';
-import {
-  Keypair,
-  LAMPORTS_PER_SOL,
-  PublicKey,
-  SystemProgram,
-  Transaction,
-  TransactionConfirmationStrategy,
-} from "@solana/web3.js";
 import * as assert from "assert";
 import {
   SEED_CONFIG,
@@ -27,8 +21,6 @@ import {
   convertToFloat,
   getAssociatedTokenAccount,
 } from "./utils.ts";
-require("dotenv").config();
-
 describe("pumpfun", () => {
   // Configure the client to use the local cluster.
   const provider = anchor.AnchorProvider.env();
@@ -45,38 +37,24 @@ describe("pumpfun", () => {
   console.log("user2: ", user2Kp.publicKey.toBase58());
 
   const connection = provider.connection;
+  // Provider payer (Anchor v0.30 compat)
+  const payer = (provider.wallet as any).payer ?? (provider.wallet as any);
+  const fromPubkey = provider.wallet.publicKey;
+
+  async function fund(toPubkey: PublicKey, lamports: number) {
+    const tx = new Transaction().add(
+      SystemProgram.transfer({ fromPubkey, toPubkey, lamports })
+    );
+    // Sign with provider only
+    await provider.sendAndConfirm(tx, [payer]);
+  }
+
 
   before(async () => {
-    console.log("airdrop SOL to admin");
-
-    const airdropTx = await connection.requestAirdrop(
-      adminKp.publicKey,
-      5 * LAMPORTS_PER_SOL
-    );
-    await connection.confirmTransaction({
-      signature: airdropTx,
-      abortSignal: AbortSignal.timeout(1000),
-    } as TransactionConfirmationStrategy);
-
-    console.log("airdrop SOL to user");
-    const airdropTx2 = await connection.requestAirdrop(
-      userKp.publicKey,
-      5 * LAMPORTS_PER_SOL
-    );
-    await connection.confirmTransaction({
-      signature: airdropTx2,
-      abortSignal: AbortSignal.timeout(1000),
-    } as TransactionConfirmationStrategy);
-
-    console.log("airdrop SOL to user2");
-    const airdropTx3 = await connection.requestAirdrop(
-      user2Kp.publicKey,
-      5 * LAMPORTS_PER_SOL
-    );
-    await connection.confirmTransaction({
-      signature: airdropTx3,
-      abortSignal: AbortSignal.timeout(1000),
-    } as TransactionConfirmationStrategy);
+    // Initial funding (no faucet)
+    await fund(adminKp.publicKey, 1 * LAMPORTS_PER_SOL);
+    await fund(userKp.publicKey,  1 * LAMPORTS_PER_SOL);
+    await fund(user2Kp.publicKey, 1 * LAMPORTS_PER_SOL);
   });
 
   it("Is correctly configured", async () => {
@@ -105,7 +83,7 @@ describe("pumpfun", () => {
       .accounts({
         payer: adminKp.publicKey,
       })
-      .signers([adminKp])
+      .signers([])
       .rpc();
 
     console.log("tx signature:", tx);
@@ -277,7 +255,7 @@ describe("pumpfun", () => {
           user: userKp.publicKey,
           tokenMint: tokenKp.publicKey,
         })
-        .signers([userKp])
+        .signers([])
         .rpc();
     } catch (error) {
       assert.match(
@@ -294,7 +272,7 @@ describe("pumpfun", () => {
         user: userKp.publicKey,
         tokenMint: tokenKp.publicKey,
       })
-      .signers([userKp])
+      .signers([])
       .rpc();
 
     console.log("tx signature:", tx);
@@ -327,7 +305,7 @@ describe("pumpfun", () => {
         user: userKp.publicKey,
         tokenMint: tokenKp.publicKey,
       })
-      .signers([userKp])
+      .signers([])
       .rpc();
 
     console.log("tx signature:", tx);
@@ -360,7 +338,7 @@ describe("pumpfun", () => {
         user: user2Kp.publicKey,
         tokenMint: tokenKp.publicKey,
       })
-      .signers([user2Kp])
+      .signers([])
       .rpc();
 
     console.log("tx signature:", tx);

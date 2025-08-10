@@ -1,5 +1,5 @@
 {
-  "address": "CaCK9zpnvkdwmzbTX45k99kBFAb9zbAm1EU8YoVWTFcB",
+  "address": "4UhpSyRX2BNMaNFEVq2aLrc8ndQnBxn9uoNSpQb1wVf1",
   "metadata": {
     "name": "pump",
     "version": "0.1.0",
@@ -292,6 +292,31 @@
           "name": "payer",
           "writable": true,
           "signer": true
+        },
+        {
+          "name": "global_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  45,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
         }
       ],
       "args": [
@@ -894,28 +919,6 @@
       ]
     }
   ],
-  "events": [
-    {
-      "name": "ReservesReleased",
-      "discriminator": [
-        144,
-        155,
-        42,
-        35,
-        110,
-        16,
-        238,
-        15
-      ]
-    }
-  ],
-  "errors": [
-    {
-      "code": 6000,
-      "name": "CurveNotCompleted",
-      "msg": "Curve is not completed yet"
-    }
-  ],
   "types": [
     {
       "name": "BondingCurve",
@@ -993,6 +996,14 @@
           {
             "name": "migration_fee_percent",
             "type": "f64"
+          },
+          {
+            "name": "paused",
+            "type": "bool"
+          },
+          {
+            "name": "is_completed",
+            "type": "bool"
           }
         ]
       }

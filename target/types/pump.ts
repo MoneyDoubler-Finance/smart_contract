@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/pump.json`.
  */
 export type Pump = {
-  "address": "CaCK9zpnvkdwmzbTX45k99kBFAb9zbAm1EU8YoVWTFcB",
+  "address": "",
   "metadata": {
     "name": "pump",
     "version": "0.1.0",
@@ -298,6 +298,31 @@ export type Pump = {
           "name": "payer",
           "writable": true,
           "signer": true
+        },
+        {
+          "name": "globalConfig",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  45,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
         }
       ],
       "args": [
@@ -900,28 +925,6 @@ export type Pump = {
       ]
     }
   ],
-  "events": [
-    {
-      "name": "reservesReleased",
-      "discriminator": [
-        144,
-        155,
-        42,
-        35,
-        110,
-        16,
-        238,
-        15
-      ]
-    }
-  ],
-  "errors": [
-    {
-      "code": 6000,
-      "name": "curveNotCompleted",
-      "msg": "Curve is not completed yet"
-    }
-  ],
   "types": [
     {
       "name": "bondingCurve",
@@ -999,6 +1002,14 @@ export type Pump = {
           {
             "name": "migrationFeePercent",
             "type": "f64"
+          },
+          {
+            "name": "paused",
+            "type": "bool"
+          },
+          {
+            "name": "isCompleted",
+            "type": "bool"
           }
         ]
       }
