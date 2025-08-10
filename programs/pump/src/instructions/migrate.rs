@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use crate::{states::Config, utils::{ensure_admin, ensure_not_completed, ensure_not_paused}};
+use crate::utils::{ensure_admin, ensure_not_completed, ensure_not_paused};
 
 #[derive(Accounts)]
 pub struct Migrate<'info> {
@@ -118,6 +118,19 @@ impl<'info> MigrateToRaydium<'info> {
         require_keys_eq!(self.global_config.authority, self.admin.key(), crate::errors::PumpError::NotAuthorized);
         require!(self.bonding_curve.is_completed, MigrateError::CurveNotCompleted);
         require_keys_eq!(self.global_config.fee_recipient, self.fee_recipient.key(), crate::errors::PumpError::IncorrectFeeRecipient);
+
+
+        // Optional allowlist check for Raydium program (feature-gated)
+        #[cfg(feature = "raydium_enforce")]
+        {
+            use std::str::FromStr;
+            let allowed = [
+                // Devnet adapter/program placeholder; replace with real Raydium CPMM IDs when ready
+                Pubkey::from_str("2q8EXsQ99V7F3pQq8gGjt6o3vijqjCEYazA2Yh4S4ray").unwrap(),
+            ];
+            require!(allowed.iter().any(|k| *k == self.raydium_program.key()), MigrateError::RaydiumProgramNotAllowed);
+        }
+
 
         // Wrap SOL into wSOL (move lamports from bonding_curve PDA to wSOL native account, then sync)
         let from_info = self.bonding_curve.to_account_info();
