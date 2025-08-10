@@ -25,3 +25,7 @@ idl:
 devnet: build keys deploy program-id idl
 	@echo "Program ID: $$(solana address -k $(PROGRAM_KEYPAIR))"
 	@echo "IDL refreshed at $(IDL_FILE)"
+
+.PHONY: check
+check:
+	node scripts/idl-check.mjs

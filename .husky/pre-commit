@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Ensure IDL is deterministic and matches committed version
+npm run idl:check || exit 1
+
+# Run tests afterwards
+npm test
+
