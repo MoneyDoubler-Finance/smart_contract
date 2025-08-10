@@ -60,10 +60,10 @@ describe("pumpfun", () => {
   it("Is correctly configured", async () => {
     // Create a dummy config object to pass as argument.
     const newConfig = {
-      authority: adminKp.publicKey,
+      authority: provider.wallet.publicKey,
       pendingAuthority: PublicKey.default,
       platformMigrationFee: 0,
-      teamWallet: adminKp.publicKey,
+      teamWallet: provider.wallet.publicKey,
 
       initBondingCurve: TEST_INIT_BONDING_CURVE,
 
@@ -81,9 +81,10 @@ describe("pumpfun", () => {
     const tx = await program.methods
       .configure(newConfig)
       .accounts({
-        payer: adminKp.publicKey,
+        admin: provider.wallet.publicKey,
+        globalConfig: PublicKey.findProgramAddressSync([Buffer.from(SEED_CONFIG)], program.programId)[0],
+        systemProgram: SystemProgram.programId,
       })
-      .signers([])
       .rpc();
 
     console.log("tx signature:", tx);
@@ -103,7 +104,7 @@ describe("pumpfun", () => {
     // Assertions to verify configuration
     assert.equal(
       configAccount.authority.toString(),
-      adminKp.publicKey.toString()
+      provider.wallet.publicKey.toString()
     );
     assert.equal(configAccount.platformBuyFee, 5);
     assert.equal(configAccount.platformSellFee, 5);
@@ -255,7 +256,7 @@ describe("pumpfun", () => {
           user: userKp.publicKey,
           tokenMint: tokenKp.publicKey,
         })
-        .signers([])
+        
         .rpc();
     } catch (error) {
       assert.match(
@@ -272,7 +273,7 @@ describe("pumpfun", () => {
         user: userKp.publicKey,
         tokenMint: tokenKp.publicKey,
       })
-      .signers([])
+      
       .rpc();
 
     console.log("tx signature:", tx);
@@ -305,7 +306,7 @@ describe("pumpfun", () => {
         user: userKp.publicKey,
         tokenMint: tokenKp.publicKey,
       })
-      .signers([])
+      
       .rpc();
 
     console.log("tx signature:", tx);
@@ -338,7 +339,7 @@ describe("pumpfun", () => {
         user: user2Kp.publicKey,
         tokenMint: tokenKp.publicKey,
       })
-      .signers([])
+      
       .rpc();
 
     console.log("tx signature:", tx);

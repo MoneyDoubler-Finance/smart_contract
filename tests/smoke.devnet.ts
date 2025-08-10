@@ -10,8 +10,8 @@ const METADATA_PROGRAM_ID = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt
 
 // Helper: airdrop and confirm
 
+
 async function ensureAirdrop(conn: Connection, pubkey: PublicKey, minLamports: number = 500_000_000) {
-  // Replace faucet with provider-funded transfer
   const bal = await conn.getBalance(pubkey);
   if (bal >= minLamports) return;
   const provider = anchor.getProvider() as anchor.AnchorProvider;
@@ -21,8 +21,6 @@ async function ensureAirdrop(conn: Connection, pubkey: PublicKey, minLamports: n
     SystemProgram.transfer({ fromPubkey, toPubkey: pubkey, lamports: minLamports - bal })
   );
   await provider.sendAndConfirm(tx, [payer]);
-}
-);
 }
 
 // Derive PDA helpers
