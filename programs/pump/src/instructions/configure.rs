@@ -1,4 +1,4 @@
-use crate::{errors::PumpError, states::Config, utils::{ensure_admin}};
+use crate::{states::Config, utils::{ensure_admin}};
 use anchor_lang::{prelude::*, system_program};
 
 #[derive(Accounts)]

@@ -17,6 +17,10 @@ fn dummy_config(paused: bool, completed: bool, authority: Pubkey) -> Config {
         migration_fee_percent: 0.0,
         paused,
         is_completed: completed,
+        pause_launch: false,
+        pause_swap: false,
+        expected_raydium_program: Pubkey::default(),
+        expected_meteora_program: Pubkey::default(),
     }
 }
 

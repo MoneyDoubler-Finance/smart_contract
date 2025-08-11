@@ -187,8 +187,25 @@ Running locally
 	•	Tests (TypeScript): anchor test
 	•	Optional Rust tests: cargo test -p pump
 
-## Breaking change
-- BondingCurve layout has a single new flag: `is_migrated: bool`.
-- New size constant `BONDING_CURVE_LEN` is used for account space: all inits use `space = 8 + BONDING_CURVE_LEN`.
-- Handlers assert existing account size is at least `8 + BONDING_CURVE_LEN` and will fail early if smaller (nice dev signal), which means previously created BondingCurve accounts with the old size are incompatible.
-- Action required: for existing deployments, re-initialize BondingCurve PDAs by relaunching tokens or migrate data to a new PDA with the updated size.
+## Emergency procedures
+
+- Pause entire program:
+  - As admin, set `--pause true` via configure script. This halts all instructions that check `paused`.
+  - Command: `yarn configure:run --pause true --send`
+- Granular kill switches:
+  - Pause launch only: `yarn configure:run --pauseLaunch true --send`
+  - Pause swaps only: `yarn configure:run --pauseSwap true --send`
+- Validate external CPIs:
+  - Configure expected Raydium/Meteora program IDs to prevent spoofed CPIs during migration.
+  - Example: `yarn configure:run --raydium <RAYDIUM_PID> --meteora <METEORA_PID> --send`
+  - To disable a specific validation, omit the flag or set the field to the default `111...111` placeholder when building config.
+- Safer swaps with minOut/slippage:
+  - Buy: `yarn buy:run --mint <MINT> --lamports <LAMPORTS> --minOut <MIN_RAW> --send`
+  - Or specify slippage in basis points: `--slippageBps 300` (3%). One of `--minOut` or `--slippageBps` is required.
+  - Sell: `yarn sell:run --mint <MINT> --rawTokens <RAW_UNITS> --minOut <MIN_RAW> --send` or `--slippageBps <BPS>`.
+- Unpause after incident:
+  - `yarn configure:run --pause false --pauseLaunch false --pauseSwap false --send`
+
+Environment variables (optional):
+- `RAYDIUM_AMM_PROGRAM`, `METEORA_PROGRAM` for CLI defaults.
+- `MIN_OUT`, `SLIPPAGE_BPS` for swap scripts defaults.

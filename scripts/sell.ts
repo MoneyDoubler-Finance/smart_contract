@@ -14,12 +14,11 @@ import {
   SYS,
   bondingCurvePda,
   fetchAccountData,
-  maybeSend,
   curveAta,
 } from './shared';
 
 function help() {
-  console.log('Usage: ts-node --transpile-only scripts/sell.ts --mint <MINT> --rawTokens <RAW_UNITS> [--send]  (env: ANCHOR_PROVIDER_URL, ANCHOR_WALLET)');
+  console.log('Usage: ts-node --transpile-only scripts/sell.ts --mint <MINT> --rawTokens <RAW_UNITS> [--minOut <MIN_RAW>] [--slippageBps <BPS>] [--send]  (env: ANCHOR_PROVIDER_URL, ANCHOR_WALLET)');
 }
 
 async function main() {
@@ -29,6 +28,9 @@ async function main() {
   const mintStr = flags.mint as string;
   const rawTokensStr = flags.rawTokens as string;
   if (!mintStr || !rawTokensStr) return help();
+
+  const minOutFlag = flags.minOut !== undefined ? BigInt(flags.minOut) : BigInt(0);
+  const slippageBps = typeof flags.slippageBps === 'number' ? flags.slippageBps : undefined;
 
   const { program, idl, PROGRAM_ID, provider } = getProgram();
   const connection = provider.connection;
@@ -60,26 +62,34 @@ async function main() {
 
   const amount = new anchor.BN(rawTokensStr);
   const direction = 1; // 1=sell
-  const minOut = new anchor.BN(0);
+
+  let minOutBn: anchor.BN;
+  if (minOutFlag > 0n) {
+    minOutBn = new anchor.BN(minOutFlag.toString());
+  } else if (slippageBps !== undefined) {
+    // conservative placeholder for sell: require at least (rawTokens * (10000 - bps))/10000 of SOL in raw lamports
+    const approx = BigInt(Math.floor((Number(rawTokensStr) * (10000 - slippageBps)) / 10000));
+    minOutBn = new anchor.BN(approx.toString());
+  } else {
+    throw new Error('Provide --minOut or --slippageBps');
+  }
 
   const decimals = await getMintDecimals(connection, mint);
 
-  buildPreview('sell', PROGRAM_ID, accounts as any, { amount: amount.toString(), direction, min_out: minOut.toString() }, {
+  buildPreview('sell', PROGRAM_ID, accounts as any, { amount: amount.toString(), direction, min_out: minOutBn.toString() }, {
     mint: mint.toBase58(),
     mintDecimals: decimals,
     rawTokens: amount.toString(),
   });
 
-  const builder = (program as any).methods.swap(amount, direction, minOut).accounts(accounts);
-  const { signature } = await maybeSend(builder, !!flags.send);
-  if (!signature) {
+  const builder = (program as any).methods.swap(amount, direction, minOutBn).accounts(accounts);
+  if (!flags.send) {
+    await builder.instruction();
     console.log('Dry-run. Pass --send to submit.');
     return;
   }
-  console.log('Signature:', signature);
-  const tx = await connection.getTransaction(signature, { commitment: 'confirmed', maxSupportedTransactionVersion: 0 });
-  const cu = tx?.meta?.computationalUnitsConsumed;
-  if (cu !== undefined) console.log('Compute units used:', cu);
+  const sig = await builder.rpc();
+  console.log('Signature:', sig);
 }
 
 main().catch((e) => {

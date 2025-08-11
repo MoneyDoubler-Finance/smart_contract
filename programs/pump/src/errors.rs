@@ -25,4 +25,7 @@ pub enum PumpError {
 
     #[msg("Program is completed")]
     ProgramCompleted,
+
+    #[msg("Unexpected program id for external CPI")] 
+    UnexpectedProgramId,
 }

@@ -1,7 +1,7 @@
 use crate::{states::{BondingCurve, Config, BONDING_CURVE_LEN}, utils::{ensure_admin, ensure_not_paused}};
-use anchor_lang::{prelude::*, system_program};
+use anchor_lang::prelude::*;
 use anchor_lang::solana_program::sysvar::rent::Rent;
-use anchor_spl::associated_token::{self, AssociatedToken};
+use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token::{self, CloseAccount, TransferChecked, Mint, Token, TokenAccount};
 
 #[event]

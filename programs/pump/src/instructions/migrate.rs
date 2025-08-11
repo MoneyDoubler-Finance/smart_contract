@@ -1,28 +1,18 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::Mint;
-use crate::{
-    states::{Config, BondingCurve},
-    utils::{ensure_admin, ensure_not_completed, ensure_not_paused},
-};
-use crate::instructions::ReleaseReservesError;
+use crate::{states::Config, utils::{ensure_admin, ensure_not_completed, ensure_not_paused, ensure_expected_program}};
 
 #[derive(Accounts)]
 pub struct Migrate<'info> {
-    // Load config first so downstream constraints can reference it cheaply
-    #[account(seeds = [Config::SEED_PREFIX.as_bytes()], bump)]
-    global_config: Box<Account<'info, Config>>,
-
-    #[account(mut, address = global_config.authority)]
+    #[account(mut)]
     payer: Signer<'info>,
 
-    token_mint: Box<Account<'info, Mint>>,
+    #[account(seeds = [Config::SEED_PREFIX.as_bytes()], bump)]
+    global_config: Account<'info, Config>,
 
-    #[account(
-        mut,
-        seeds = [BondingCurve::SEED_PREFIX.as_bytes(), &token_mint.key().to_bytes()],
-        bump
-    )]
-    bonding_curve: Box<Account<'info, BondingCurve>>,
+    /// CHECK: validated against expected program id in config if configured
+    raydium_program: UncheckedAccount<'info>,
+    /// CHECK: validated against expected program id in config if configured
+    meteora_program: UncheckedAccount<'info>,
 }
 
 impl<'info> Migrate<'info> {
@@ -32,11 +22,9 @@ impl<'info> Migrate<'info> {
         ensure_not_completed(&self.global_config.as_ref())?;
         ensure_admin(&self.global_config.as_ref(), &self.payer.key())?;
 
-        // Require curve to be completed
-        require!(self.bonding_curve.is_completed, ReleaseReservesError::CurveNotCompleted);
-
-        // Mark program as completed to prevent re-migration
-        self.global_config.is_completed = true;
+        // Validate external programs if expectations are configured
+        ensure_expected_program(self.raydium_program.key, &self.global_config.expected_raydium_program)?;
+        ensure_expected_program(self.meteora_program.key, &self.global_config.expected_meteora_program)?;
 
         ////////////////////    DM if you want full implementation    ////////////////////
         // telegram - https://t.me/microgift88

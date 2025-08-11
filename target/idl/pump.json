@@ -289,6 +289,11 @@
       ],
       "accounts": [
         {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
           "name": "global_config",
           "pda": {
             "seeds": [
@@ -314,42 +319,10 @@
           }
         },
         {
-          "name": "payer",
-          "writable": true,
-          "signer": true
+          "name": "raydium_program"
         },
         {
-          "name": "token_mint"
-        },
-        {
-          "name": "bonding_curve",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  98,
-                  111,
-                  110,
-                  100,
-                  105,
-                  110,
-                  103,
-                  45,
-                  99,
-                  117,
-                  114,
-                  118,
-                  101
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "token_mint"
-              }
-            ]
-          }
+          "name": "meteora_program"
         }
       ],
       "args": [
@@ -1041,6 +1014,22 @@
           {
             "name": "is_completed",
             "type": "bool"
+          },
+          {
+            "name": "pause_launch",
+            "type": "bool"
+          },
+          {
+            "name": "pause_swap",
+            "type": "bool"
+          },
+          {
+            "name": "expected_raydium_program",
+            "type": "pubkey"
+          },
+          {
+            "name": "expected_meteora_program",
+            "type": "pubkey"
           }
         ]
       }

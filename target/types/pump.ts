@@ -295,6 +295,11 @@ export type Pump = {
       ],
       "accounts": [
         {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
           "name": "globalConfig",
           "pda": {
             "seeds": [
@@ -320,42 +325,10 @@ export type Pump = {
           }
         },
         {
-          "name": "payer",
-          "writable": true,
-          "signer": true
+          "name": "raydiumProgram"
         },
         {
-          "name": "tokenMint"
-        },
-        {
-          "name": "bondingCurve",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  98,
-                  111,
-                  110,
-                  100,
-                  105,
-                  110,
-                  103,
-                  45,
-                  99,
-                  117,
-                  114,
-                  118,
-                  101
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "tokenMint"
-              }
-            ]
-          }
+          "name": "meteoraProgram"
         }
       ],
       "args": [
@@ -1047,6 +1020,22 @@ export type Pump = {
           {
             "name": "isCompleted",
             "type": "bool"
+          },
+          {
+            "name": "pauseLaunch",
+            "type": "bool"
+          },
+          {
+            "name": "pauseSwap",
+            "type": "bool"
+          },
+          {
+            "name": "expectedRaydiumProgram",
+            "type": "pubkey"
+          },
+          {
+            "name": "expectedMeteoraProgram",
+            "type": "pubkey"
           }
         ]
       }

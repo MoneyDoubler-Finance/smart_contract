@@ -2,7 +2,7 @@ use crate::{
     consts::TOKEN_DECIMAL,
     states::{BondingCurve, Config, BONDING_CURVE_LEN},
     errors::PumpError,
-    utils::{ensure_not_completed, ensure_not_paused},
+    utils::{ensure_not_completed, ensure_not_paused, ensure_launch_allowed},
 };
 use anchor_lang::{prelude::*, solana_program::sysvar::SysvarId, system_program};
 use anchor_spl::{
@@ -78,6 +78,7 @@ impl<'info> Launch<'info> {
     ) -> Result<()> { 
         // global guards
         ensure_not_paused(&self.global_config.as_ref())?;
+        ensure_launch_allowed(&self.global_config.as_ref())?;
         ensure_not_completed(&self.global_config.as_ref())?;
         let bonding_curve = &mut self.bonding_curve;
         let global_config = &self.global_config;
