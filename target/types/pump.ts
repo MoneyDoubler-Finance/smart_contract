@@ -954,6 +954,10 @@ export type Pump = {
           {
             "name": "isCompleted",
             "type": "bool"
+          },
+          {
+            "name": "isMigrated",
+            "type": "bool"
           }
         ]
       }

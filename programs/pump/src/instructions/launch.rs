@@ -88,6 +88,7 @@ impl<'info> Launch<'info> {
         bonding_curve.real_sol_reserves = 0;
         bonding_curve.token_total_supply = global_config.total_token_supply;
         bonding_curve.is_completed = false;
+        bonding_curve.is_migrated = false;
 
         ////////////////////////////////////////////////////////////////////////////////
         //  move the below to swap ix if you want the first buyer to pays the other fee

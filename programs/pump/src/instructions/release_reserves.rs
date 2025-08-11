@@ -60,6 +60,8 @@ pub struct ReleaseReserves<'info> {
 pub enum ReleaseReservesError {
     #[msg("Curve is not completed yet")]
     CurveNotCompleted,
+    #[msg("Already migrated")]
+    AlreadyMigrated,
 }
 
 impl<'info> ReleaseReserves<'info> {
@@ -67,6 +69,7 @@ impl<'info> ReleaseReserves<'info> {
         // global pause guard and admin check
         ensure_not_paused(&self.global_config.as_ref())?;
         ensure_admin(&self.global_config.as_ref(), &self.admin.key())?;
+        require!(!self.bonding_curve.is_migrated, ReleaseReservesError::AlreadyMigrated);
         // ensure curve completed
         require!(self.bonding_curve.is_completed, ReleaseReservesError::CurveNotCompleted);
 
@@ -141,6 +144,9 @@ impl<'info> ReleaseReserves<'info> {
             lamports_sent,
             tokens_sent,
         });
+
+        // mark as migrated to block subsequent calls
+        self.bonding_curve.is_migrated = true;
 
         Ok(())
     }

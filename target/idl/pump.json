@@ -948,6 +948,10 @@
           {
             "name": "is_completed",
             "type": "bool"
+          },
+          {
+            "name": "is_migrated",
+            "type": "bool"
           }
         ]
       }
