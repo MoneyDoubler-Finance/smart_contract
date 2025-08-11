@@ -68,7 +68,6 @@ pub mod pump {
         ctx.accounts.process(ctx.bumps.bonding_curve)
     }
 }
-
 #[cfg(test)]
 mod compile_variants {
     #[test]
