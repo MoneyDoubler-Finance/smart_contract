@@ -113,7 +113,7 @@ describe('migrate: ensure curve completion and failure cases', () => {
     await ensureAirdrop(connection, buyer.publicKey, 1 * LAMPORTS_PER_SOL);
     const globalConfig = globalConfigPda(programId);
 
-    await (program as any).methods
+    const sigBuy = await (program as any).methods
       .swap(curveLimit.div(new BN(10)), 0, new BN(0))
       .accounts({
         user: buyer.publicKey,
@@ -129,6 +129,9 @@ describe('migrate: ensure curve completion and failure cases', () => {
       })
       .signers([buyer])
       .rpc();
+    const txBuy = await connection.getTransaction(sigBuy, { commitment: 'confirmed', maxSupportedTransactionVersion: 0 });
+    const cuBuy = txBuy?.meta?.computationalUnitsConsumed;
+    if (cuBuy !== undefined) console.log('swap (pre-migrate) CU:', cuBuy);
 
     let failed = false;
     try {
@@ -178,7 +181,7 @@ describe('migrate: ensure curve completion and failure cases', () => {
     assert.equal(curveAcct.isCompleted, true);
 
     // Happy path migrate
-    await (program as any).methods
+    const sigMig = await (program as any).methods
       .migrate(0)
       .accounts({
         payer: (provider.wallet as any).publicKey,
@@ -187,6 +190,9 @@ describe('migrate: ensure curve completion and failure cases', () => {
         bondingCurve,
       })
       .rpc();
+    const txMig = await connection.getTransaction(sigMig, { commitment: 'confirmed', maxSupportedTransactionVersion: 0 });
+    const cuMig = txMig?.meta?.computationalUnitsConsumed;
+    if (cuMig !== undefined) console.log('migrate CU:', cuMig);
 
     // Second migrate should fail due to global ProgramCompleted guard
     let failed = false;

@@ -295,11 +295,6 @@ export type Pump = {
       ],
       "accounts": [
         {
-          "name": "payer",
-          "writable": true,
-          "signer": true
-        },
-        {
           "name": "globalConfig",
           "pda": {
             "seeds": [
@@ -323,6 +318,11 @@ export type Pump = {
               }
             ]
           }
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
         },
         {
           "name": "tokenMint"
@@ -685,8 +685,7 @@ export type Pump = {
           }
         },
         {
-          "name": "feeRecipient",
-          "writable": true
+          "name": "tokenMint"
         },
         {
           "name": "bondingCurve",
@@ -719,7 +718,20 @@ export type Pump = {
           }
         },
         {
-          "name": "tokenMint"
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associatedTokenProgram",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "feeRecipient",
+          "writable": true
         },
         {
           "name": "curveTokenAccount",
@@ -900,18 +912,6 @@ export type Pump = {
               ]
             }
           }
-        },
-        {
-          "name": "tokenProgram",
-          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
-        },
-        {
-          "name": "associatedTokenProgram",
-          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
-        },
-        {
-          "name": "systemProgram",
-          "address": "11111111111111111111111111111111"
         }
       ],
       "args": [

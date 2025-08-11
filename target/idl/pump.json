@@ -289,11 +289,6 @@
       ],
       "accounts": [
         {
-          "name": "payer",
-          "writable": true,
-          "signer": true
-        },
-        {
           "name": "global_config",
           "pda": {
             "seeds": [
@@ -317,6 +312,11 @@
               }
             ]
           }
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
         },
         {
           "name": "token_mint"
@@ -679,8 +679,7 @@
           }
         },
         {
-          "name": "fee_recipient",
-          "writable": true
+          "name": "token_mint"
         },
         {
           "name": "bonding_curve",
@@ -713,7 +712,20 @@
           }
         },
         {
-          "name": "token_mint"
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "fee_recipient",
+          "writable": true
         },
         {
           "name": "curve_token_account",
@@ -894,18 +906,6 @@
               ]
             }
           }
-        },
-        {
-          "name": "token_program",
-          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
-        },
-        {
-          "name": "associated_token_program",
-          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
-        },
-        {
-          "name": "system_program",
-          "address": "11111111111111111111111111111111"
         }
       ],
       "args": [

@@ -8,20 +8,21 @@ use crate::instructions::ReleaseReservesError;
 
 #[derive(Accounts)]
 pub struct Migrate<'info> {
+    // Load config first so downstream constraints can reference it cheaply
+    #[account(seeds = [Config::SEED_PREFIX.as_bytes()], bump)]
+    global_config: Box<Account<'info, Config>>,
+
     #[account(mut, address = global_config.authority)]
     payer: Signer<'info>,
 
-    #[account(seeds = [Config::SEED_PREFIX.as_bytes()], bump)]
-    global_config: Account<'info, Config>,
-
-    token_mint: Account<'info, Mint>,
+    token_mint: Box<Account<'info, Mint>>,
 
     #[account(
         mut,
         seeds = [BondingCurve::SEED_PREFIX.as_bytes(), &token_mint.key().to_bytes()],
         bump
     )]
-    bonding_curve: Account<'info, BondingCurve>,
+    bonding_curve: Box<Account<'info, BondingCurve>>,
 }
 
 impl<'info> Migrate<'info> {

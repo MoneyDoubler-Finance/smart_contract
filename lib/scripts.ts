@@ -5,7 +5,6 @@ import {
   Keypair,
   PublicKey,
   SystemProgram,
-  SYSVAR_RENT_PUBKEY,
   Transaction,
 } from "@solana/web3.js";
 
@@ -104,7 +103,7 @@ export const swapTx = async (
   );
   const configAccount = await program.account.config.fetch(configPda);
 
-  const tx = await program.methods
+  const inner = await program.methods
     .swap(new BN(amount), style, new BN(amount))
     .accounts({
       teamWallet: configAccount.teamWallet,
@@ -112,6 +111,11 @@ export const swapTx = async (
       tokenMint: token,
     })
     .transaction();
+
+  const tx = new Transaction().add(
+    ComputeBudgetProgram.setComputeUnitLimit({ units: 400_000 })
+  );
+  tx.add(inner);
 
   tx.feePayer = user;
   tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;

@@ -1,13 +1,6 @@
-import * as anchor from "@coral-xyz/anchor";
-import {
-  Connection,
-  Keypair,
-  PublicKey,
-  SystemProgram,
-  Transaction,
-  TransactionInstruction,
-} from "@solana/web3.js";
-import { readFileSync } from "fs";
+import * as anchor from '@coral-xyz/anchor';
+import { Connection, Keypair, PublicKey, SystemProgram, Transaction, TransactionInstruction, ComputeBudgetProgram } from '@solana/web3.js';
+import { readFileSync } from 'fs';
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
@@ -164,7 +157,9 @@ export async function maybeSend(
     return { instruction: ix };
   }
   const { provider } = getProgram();
-  const tx = new Transaction().add(ix);
+  const tx = new Transaction()
+    .add(ComputeBudgetProgram.setComputeUnitLimit({ units: 500_000 }))
+    .add(ix);
   const sig = await provider.sendAndConfirm(tx, signers);
   return { signature: sig, instruction: ix };
 }
