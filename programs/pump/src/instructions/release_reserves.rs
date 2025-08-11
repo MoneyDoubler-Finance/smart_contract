@@ -1,4 +1,4 @@
-use crate::{states::{BondingCurve, Config}, utils::{ensure_admin, ensure_not_paused}};
+use crate::{states::{BondingCurve, Config, BONDING_CURVE_LEN}, utils::{ensure_admin, ensure_not_paused}};
 use anchor_lang::{prelude::*, system_program};
 use anchor_lang::solana_program::sysvar::rent::Rent;
 use anchor_spl::associated_token::{self, AssociatedToken};
@@ -72,6 +72,10 @@ impl<'info> ReleaseReserves<'info> {
         require!(!self.bonding_curve.is_migrated, ReleaseReservesError::AlreadyMigrated);
         // ensure curve completed
         require!(self.bonding_curve.is_completed, ReleaseReservesError::CurveNotCompleted);
+
+        // size sanity check for upgraded accounts
+        let expected_space = 8 + BONDING_CURVE_LEN;
+        require!(self.bonding_curve.to_account_info().data_len() >= expected_space, crate::errors::PumpError::IncorrectValue);
 
         // minimal SOL transfer with logging (no SPL token ops)
         let from_info = self.bonding_curve.to_account_info();

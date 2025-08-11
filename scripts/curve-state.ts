@@ -45,6 +45,7 @@ async function main() {
         totalSupply: parsed.tokenTotalSupply.toString(),
       },
       isCompleted: parsed.isCompleted,
+      isMigrated: parsed.isMigrated,
     }),
   );
 }

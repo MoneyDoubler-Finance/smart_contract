@@ -323,6 +323,39 @@ export type Pump = {
               }
             ]
           }
+        },
+        {
+          "name": "tokenMint"
+        },
+        {
+          "name": "bondingCurve",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  111,
+                  110,
+                  100,
+                  105,
+                  110,
+                  103,
+                  45,
+                  99,
+                  117,
+                  114,
+                  118,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "tokenMint"
+              }
+            ]
+          }
         }
       ],
       "args": [
@@ -1014,30 +1047,6 @@ export type Pump = {
           {
             "name": "isCompleted",
             "type": "bool"
-          }
-        ]
-      }
-    },
-    {
-      "name": "migratedToRaydium",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "pool",
-            "type": "pubkey"
-          },
-          {
-            "name": "lpMint",
-            "type": "pubkey"
-          },
-          {
-            "name": "amountToken",
-            "type": "u64"
-          },
-          {
-            "name": "amountWsol",
-            "type": "u64"
           }
         ]
       }

@@ -84,9 +84,6 @@ Build the program
 # and it will make a build version
 anchor build
 
-# build with Raydium CPI adapter enabled (does not disable entrypoint)
-anchor build -- --features raydium_cpi
-
 # sync all keys in program
 anchor keys sync
 
@@ -106,11 +103,7 @@ cluster = "Localnet"
 
 Run the tests:
 
-# default
 anchor test --provider.cluster Localnet
-
-# run tests with Raydium CPI adapter feature enabled
-anchor test --provider.cluster Localnet -- --features raydium_cpi
 
 Test program on devnet
 
@@ -191,7 +184,11 @@ Notes:
 Running locally
 	•	Ensure Anchor CLI and a Solana validator are installed
 	•	Build: anchor build
-	•	Build with Raydium CPI feature: anchor build -- --features raydium_cpi
 	•	Tests (TypeScript): anchor test
-	•	Tests with Raydium CPI feature: anchor test -- --features raydium_cpi
 	•	Optional Rust tests: cargo test -p pump
+
+## Breaking change
+- BondingCurve layout has a single new flag: `is_migrated: bool`.
+- New size constant `BONDING_CURVE_LEN` is used for account space: all inits use `space = 8 + BONDING_CURVE_LEN`.
+- Handlers assert existing account size is at least `8 + BONDING_CURVE_LEN` and will fail early if smaller (nice dev signal), which means previously created BondingCurve accounts with the old size are incompatible.
+- Action required: for existing deployments, re-initialize BondingCurve PDAs by relaunching tokens or migrate data to a new PDA with the updated size.
